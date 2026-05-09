@@ -23,7 +23,7 @@ export default function PublicProjectPage() {
     if (!projectId) return
 
     apiClient
-      .get<{ data: ProjectData }>(`/api/v1/public/projects/${projectId}`)
+      .get<{ data: ProjectData }>(`/public/projects/${projectId}`)
       .then((res) => {
         setProject(res.data.data)
         setState('found')
