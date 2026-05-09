@@ -6,6 +6,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 export const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
   withCredentials: true, // Required for HttpOnly refresh token cookie
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -64,7 +65,8 @@ apiClient.interceptors.response.use(
           {},
           { withCredentials: true }
         )
-        const newToken = response.data.data.accessToken
+        const newToken = response?.data?.data?.accessToken
+        if (!newToken) throw new Error('Refresh response missing access token')
         useAuthStore.getState().setAccessToken(newToken)
         processQueue(null, newToken)
         originalRequest.headers.Authorization = `Bearer ${newToken}`
