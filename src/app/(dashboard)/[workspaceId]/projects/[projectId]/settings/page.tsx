@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
-import type { WorkflowStage, AutoTriggerRule } from '@/types'
+import type { WorkflowStage, AutoTriggerRule, Project } from '@/types'
 import axios from 'axios'
 
 // ── Stage templates ────────────────────────────────────────────────────────────
@@ -134,12 +134,92 @@ const TRIGGER_TYPES = ['PR_OPENED', 'PR_MERGED', 'PR_CLOSED', 'PR_REVIEWED'] as 
 export default function ProjectSettingsPage() {
   const params = useParams<{ workspaceId: string; projectId: string }>()
   const { workspaceId, projectId } = params
+  const router = useRouter()
   const queryClient = useQueryClient()
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [showTemplates, setShowTemplates] = useState(false)
   const [applyingTemplate, setApplyingTemplate] = useState<string | null>(null)
+  const [confirmArchive, setConfirmArchive] = useState(false)
+  const [repoInput, setRepoInput] = useState('')
+  const [connectingGithub, setConnectingGithub] = useState(false)
+
+  // --- Project detail query ---
+  const { data: project } = useQuery({
+    queryKey: queryKeys.projects.detail(workspaceId, projectId),
+    queryFn: () =>
+      apiClient
+        .get<{ data: Project }>(`/workspaces/${workspaceId}/projects/${projectId}`)
+        .then(r => r.data.data),
+  })
+
+  // --- GitHub Connection ---
+  const { data: githubConn, refetch: refetchGithub } = useQuery({
+    queryKey: ['github', workspaceId, projectId],
+    queryFn: () =>
+      apiClient
+        .get<{ data: { connected: boolean; repoFullName: string | null } }>(
+          `/workspaces/${workspaceId}/projects/${projectId}/github`
+        )
+        .then(r => r.data.data),
+    retry: false,
+  })
+
+  const connectGithub = async () => {
+    setConnectingGithub(true)
+    try {
+      const res = await apiClient.get<{ data: { authUrl: string } }>(
+        `/auth/github?projectId=${projectId}&workspaceId=${workspaceId}`
+      )
+      window.location.href = res.data.data.authUrl
+    } catch {
+      toast.error('Failed to initiate GitHub connection')
+      setConnectingGithub(false)
+    }
+  }
+
+  const webhookMutation = useMutation({
+    mutationFn: (repoFullName: string) =>
+      apiClient.post(`/workspaces/${workspaceId}/projects/${projectId}/github/webhook`, { repoFullName }),
+    onSuccess: () => {
+      refetchGithub()
+      setRepoInput('')
+      toast.success('Webhook activated — trigger rules are now live!')
+    },
+    onError: (err) => {
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data?.message ?? 'Failed to register webhook')
+        : 'Failed to register webhook'
+      toast.error(msg)
+    },
+  })
+
+  // --- Archive / Unarchive ---
+  const archiveMutation = useMutation({
+    mutationFn: () =>
+      apiClient.patch(`/workspaces/${workspaceId}/projects/${projectId}/archive`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(workspaceId, projectId) })
+      toast.success('Project archived')
+      router.push(`/${workspaceId}/projects`)
+    },
+    onError: () => toast.error('Failed to archive project'),
+  })
+
+  const unarchiveMutation = useMutation({
+    mutationFn: () =>
+      apiClient.patch(`/workspaces/${workspaceId}/projects/${projectId}/unarchive`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.archived(workspaceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(workspaceId, projectId) })
+      toast.success('Project restored')
+      setConfirmArchive(false)
+    },
+    onError: () => toast.error('Failed to restore project'),
+  })
 
   // --- Stages query ---
   const { data: stages = [], isLoading } = useQuery({
@@ -254,6 +334,16 @@ export default function ProjectSettingsPage() {
         toast.error('Failed to add trigger rule')
       }
     },
+  })
+
+  const deleteRuleMutation = useMutation({
+    mutationFn: (ruleId: string) =>
+      apiClient.delete(`/workspaces/${workspaceId}/projects/${projectId}/triggers/${ruleId}`),
+    onSuccess: () => {
+      invalidateTriggers()
+      toast.success('Trigger rule deleted')
+    },
+    onError: () => toast.error('Failed to delete trigger rule'),
   })
 
   const applyTemplate = async (template: StageTemplate) => {
@@ -529,11 +619,201 @@ export default function ProjectSettingsPage() {
         </form>
       </section>
 
+      {/* ── Danger Zone ───────────────────────────────────────────────── */}
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold text-red-600 mb-1">Danger Zone</h2>
+        <p className="text-gray-500 text-xs mb-4">These actions affect the project's availability to your team.</p>
+
+        <div className="border border-red-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 bg-white">
+            <div>
+              {project?.archivedAt ? (
+                <>
+                  <p className="text-sm font-semibold text-gray-800">Restore this project</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Make this project active again. Archived on{' '}
+                    {new Date(project.archivedAt).toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric',
+                    })}.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-gray-800">Archive this project</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Hide the project from the active list. Tickets and data are preserved.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {project?.archivedAt ? (
+              /* ── Unarchive flow ── */
+              confirmArchive ? (
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-gray-600">Restore project?</span>
+                  <button
+                    onClick={() => unarchiveMutation.mutate()}
+                    disabled={unarchiveMutation.isPending}
+                    className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50"
+                  >
+                    {unarchiveMutation.isPending ? 'Restoring…' : 'Yes, restore'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmArchive(false)}
+                    className="text-xs border border-gray-200 text-gray-500 hover:bg-gray-50 px-3 py-1.5 rounded-lg font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmArchive(true)}
+                  className="shrink-0 text-xs border border-indigo-300 text-indigo-600 hover:bg-indigo-50 px-4 py-1.5 rounded-lg font-medium transition"
+                >
+                  Restore project
+                </button>
+              )
+            ) : (
+              /* ── Archive flow ── */
+              confirmArchive ? (
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-gray-600">Archive project?</span>
+                  <button
+                    onClick={() => archiveMutation.mutate()}
+                    disabled={archiveMutation.isPending}
+                    className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50"
+                  >
+                    {archiveMutation.isPending ? 'Archiving…' : 'Yes, archive'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmArchive(false)}
+                    className="text-xs border border-gray-200 text-gray-500 hover:bg-gray-50 px-3 py-1.5 rounded-lg font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmArchive(true)}
+                  className="shrink-0 text-xs border border-red-300 text-red-600 hover:bg-red-50 px-4 py-1.5 rounded-lg font-medium transition"
+                >
+                  Archive project
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GitHub Connection ─────────────────────────────────────────── */}
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold mb-1">GitHub Connection</h2>
+        <p className="text-gray-500 text-xs mb-4">
+          Connect a GitHub repository so trigger rules can respond to PR events.
+        </p>
+
+        {!githubConn?.connected ? (
+          /* Not connected */
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-[#24292F] rounded-2xl flex items-center justify-center mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-gray-800 mb-1">GitHub not connected</p>
+            <p className="text-xs text-gray-400 mb-5 max-w-xs">
+              Authorize unity_skill to access your GitHub account. You will be redirected to GitHub.
+            </p>
+            <button
+              onClick={connectGithub}
+              disabled={connectingGithub}
+              className="inline-flex items-center gap-2 bg-[#24292F] hover:bg-gray-700 text-white text-sm px-5 py-2.5 rounded-xl font-medium transition disabled:opacity-50"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+              {connectingGithub ? 'Redirecting to GitHub…' : 'Connect GitHub'}
+            </button>
+          </div>
+        ) : !githubConn.repoFullName ? (
+          /* Connected via OAuth, but webhook not yet registered */
+          <div className="border border-amber-200 bg-amber-50 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-400 rounded-full" />
+                <span className="text-sm font-semibold text-amber-800">GitHub authorized — webhook pending</span>
+              </div>
+              {/* Reconnect button — use if webhook keeps failing (re-auth with new scope) */}
+              <button
+                onClick={connectGithub}
+                disabled={connectingGithub}
+                className="text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition disabled:opacity-50 flex items-center gap-1"
+                title="Re-authorize GitHub to refresh permissions"
+              >
+                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reconnect GitHub
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Enter the full name of the repository you want to connect (e.g. <code className="bg-amber-100 px-1 rounded">owner/repo-name</code>).
+              unity_skill will register a webhook automatically.
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={repoInput}
+                onChange={e => setRepoInput(e.target.value)}
+                placeholder="owner/repo-name"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <button
+                onClick={() => webhookMutation.mutate(repoInput.trim())}
+                disabled={!repoInput.includes('/') || webhookMutation.isPending}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition disabled:opacity-50 whitespace-nowrap"
+              >
+                {webhookMutation.isPending ? 'Activating…' : 'Activate Webhook'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Fully connected */
+          <div className="border border-green-200 bg-green-50 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#24292F] rounded-xl flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{githubConn.repoFullName}</p>
+                <p className="text-xs text-green-700 flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />
+                  Webhook active · Trigger rules are live
+                </p>
+              </div>
+            </div>
+            <a
+              href={`https://github.com/${githubConn.repoFullName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-400 hover:text-gray-700 transition"
+            >
+              View on GitHub →
+            </a>
+          </div>
+        )}
+      </section>
+
       {/* Trigger Rules */}
       <section className="mb-10">
         <h2 className="text-lg font-semibold mb-1">Trigger Rules</h2>
         <p className="text-gray-500 text-xs mb-4">
           Automatically move tickets between stages when PR events occur.
+          {githubConn && !githubConn.repoFullName && (
+            <span className="ml-1 text-amber-600 font-medium">⚠ Connect GitHub first to enable trigger rules.</span>
+          )}
         </p>
 
         {rules.length === 0 ? (
@@ -545,6 +825,7 @@ export default function ProjectSettingsPage() {
                 <th className="px-3 py-2 text-xs font-medium text-gray-500">Source Stage</th>
                 <th className="px-3 py-2 text-xs font-medium text-gray-500">Event</th>
                 <th className="px-3 py-2 text-xs font-medium text-gray-500">Target Stage</th>
+                <th className="px-3 py-2 text-xs font-medium text-gray-500"></th>
               </tr>
             </thead>
             <tbody>
@@ -557,6 +838,15 @@ export default function ProjectSettingsPage() {
                     </span>
                   </td>
                   <td className="px-3 py-2">{stageName(rule.targetStageId)}</td>
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      onClick={() => deleteRuleMutation.mutate(rule.id)}
+                      disabled={deleteRuleMutation.isPending}
+                      className="text-red-400 hover:text-red-600 text-xs font-medium transition disabled:opacity-40"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

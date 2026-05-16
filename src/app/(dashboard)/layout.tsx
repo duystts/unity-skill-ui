@@ -28,23 +28,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // ── Silent restore: chạy 1 lần duy nhất khi mount ──────────────────────────
   useEffect(() => {
     // Nếu đã có token trong memory (navigate bình thường, không phải F5)
-    if (accessToken) {
+    if (accessToken && user) {
       setSessionState('ok')
       return
     }
 
-    // Không có token → thử refresh bằng HttpOnly cookie
+    // Không có token (hoặc user chưa load) → thử refresh bằng HttpOnly cookie
     axios
       .post(`${BASE_URL}/api/v1/auth/refresh`, {}, { withCredentials: true })
-      .then((res) => {
+      .then(async (res) => {
         const newToken = res.data?.data?.accessToken
-        if (newToken) {
-          setAccessToken(newToken)
-          setSessionState('ok')
-        } else {
+        if (!newToken) {
           clearAuth()
           setSessionState('rejected')
+          return
         }
+        setAccessToken(newToken)
+        // Fetch user nếu chưa có (vd: sau GitHub OAuth redirect)
+        if (!user) {
+          try {
+            const meRes = await axios.get(`${BASE_URL}/api/v1/users/me`, {
+              headers: { Authorization: `Bearer ${newToken}` },
+            })
+            const fetchedUser = meRes.data?.data
+            if (fetchedUser) useAuthStore.getState().setUser(fetchedUser)
+          } catch {
+            // user fetch thất bại — vẫn cho vào, page con sẽ handle
+          }
+        }
+        setSessionState('ok')
       })
       .catch(() => {
         clearAuth()
@@ -57,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (sessionState === 'pending') return
 
-    if (sessionState === 'rejected' || !user) {
+    if (sessionState === 'rejected') {
       router.replace('/login')
       return
     }
@@ -96,7 +108,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     )
   }
 
-  if (!user) return null
+  // user có thể null vài ms sau khi fetch xong — hiện spinner thay vì crash
+  if (!user) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -104,17 +121,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
         <Link
           href="/workspaces"
-          className="text-sm font-semibold text-gray-800 hover:text-indigo-600 transition"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition group"
         >
-          Unity_skill
+          <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor" className="shrink-0">
+            <path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"/>
+          </svg>
+          <span className="text-xs font-semibold">All workspaces</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/workspaces/new"
-            className="text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition"
-          >
-            + New workspace
-          </Link>
           <span className="text-sm text-gray-600">{user.displayName}</span>
           <button
             onClick={handleLogout}

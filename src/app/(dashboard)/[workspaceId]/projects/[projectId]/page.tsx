@@ -11,9 +11,91 @@ import axios from 'axios'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
-import type { Ticket, WorkflowStage, WorkspaceMember } from '@/types'
+import type { Ticket, TicketActivity, TicketAttachment, StorageStats, WorkflowStage, WorkspaceMember } from '@/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024)        return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function ActivityRow({ activity, isLast }: { activity: TicketActivity; isLast: boolean }) {
+  const timeAgo = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 1)  return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
+  }
+
+  const actor = activity.actorName ?? 'Unknown'
+  const initials = actor.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const isAuto = !activity.actorId
+
+  let icon: React.ReactNode
+  let description: React.ReactNode
+
+  if (activity.type === 'TICKET_CREATED') {
+    icon = <span className="text-emerald-500">✦</span>
+    description = (
+      <>created <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span> <span className="text-gray-700">{activity.ticketTitle}</span></>
+    )
+  } else if (activity.type === 'STAGE_CHANGED') {
+    icon = <span className="text-blue-400">→</span>
+    description = (
+      <>moved <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span>{' '}
+        <span className="text-gray-500 line-through text-[10px]">{activity.fromStageName ?? '?'}</span>
+        {' → '}
+        <span className="text-gray-800 font-medium text-[11px]">{activity.toStageName ?? '?'}</span>
+      </>
+    )
+  } else if (activity.type === 'PR_LINKED') {
+    icon = <span className="text-violet-500">⎇</span>
+    description = <>linked PR to <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span></>
+  } else {
+    icon = <span className="text-gray-400">·</span>
+    description = <>{activity.type.toLowerCase().replace('_', ' ')}</>
+  }
+
+  return (
+    <div className="flex gap-3 pb-4 relative">
+      {/* Avatar / dot */}
+      <div className="shrink-0 z-10">
+        {isAuto ? (
+          <div className="w-[30px] h-[30px] rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-sm">
+            {icon}
+          </div>
+        ) : (
+          <div className="w-[30px] h-[30px] rounded-full bg-indigo-500 flex items-center justify-center text-white text-[10px] font-bold">
+            {initials}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-1">
+        <p className="text-[11px] text-gray-600 leading-relaxed">
+          <span className="font-semibold text-gray-800">{actor}</span>{' '}
+          {description}
+        </p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(activity.createdAt)}</p>
+      </div>
+    </div>
+  )
+}
+
+function StatChip({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex items-center gap-1.5 shrink-0">
+      <span className={`text-sm font-bold ${color}`}>{value}</span>
+      <span className="text-[11px] text-gray-400">{label}</span>
+    </div>
+  )
+}
 
 function groupTicketsByStage(tickets: Ticket[]): Record<string, Ticket[]> {
   return tickets.reduce((acc, t) => {
@@ -67,6 +149,9 @@ export default function KanbanBoardPage() {
   const [moveStageValue, setMoveStageValue] = useState('')
   const [assigneeValue, setAssigneeValue] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showActivity, setShowActivity] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const newTitleRef = useRef<HTMLInputElement>(null)
   const editTitleRef = useRef<HTMLInputElement>(null)
@@ -99,6 +184,70 @@ export default function KanbanBoardPage() {
       apiClient
         .get<{ data: WorkspaceMember[] }>(`/workspaces/${workspaceId}/members`)
         .then((r) => r.data.data),
+  })
+
+  const { data: attachments = [], refetch: refetchAttachments } = useQuery({
+    queryKey: queryKeys.tickets.attachments(workspaceId, selectedTicket?.id ?? ''),
+    queryFn: () =>
+      apiClient
+        .get<{ data: TicketAttachment[] }>(
+          `/workspaces/${workspaceId}/projects/${projectId}/tickets/${selectedTicket!.id}/attachments`
+        )
+        .then(r => r.data.data),
+    enabled: !!selectedTicket,
+  })
+
+  const { data: storageStats } = useQuery({
+    queryKey: queryKeys.storage.stats(workspaceId),
+    queryFn: () =>
+      apiClient
+        .get<{ data: StorageStats }>(`/workspaces/${workspaceId}/storage/stats`)
+        .then(r => r.data.data),
+  })
+
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: ({ ticketId, attachmentId }: { ticketId: string; attachmentId: string }) =>
+      apiClient.delete(
+        `/workspaces/${workspaceId}/projects/${projectId}/tickets/${ticketId}/attachments/${attachmentId}`
+      ),
+    onSuccess: () => {
+      refetchAttachments()
+      queryClient.invalidateQueries({ queryKey: queryKeys.storage.stats(workspaceId) })
+    },
+    onError: () => toast.error('Failed to delete attachment'),
+  })
+
+  const handleFileUpload = async (file: File) => {
+    if (!selectedTicket) return
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      await apiClient.post(
+        `/workspaces/${workspaceId}/projects/${projectId}/tickets/${selectedTicket.id}/attachments`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+      refetchAttachments()
+      queryClient.invalidateQueries({ queryKey: queryKeys.storage.stats(workspaceId) })
+      toast.success('File uploaded')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery({
+    queryKey: queryKeys.tickets.activities(workspaceId, projectId),
+    queryFn: () =>
+      apiClient
+        .get<{ data: TicketActivity[] }>(
+          `/workspaces/${workspaceId}/projects/${projectId}/activities`
+        )
+        .then((r) => r.data.data),
+    enabled: showActivity,
+    refetchOnWindowFocus: false,
   })
 
   const currentMember = members.find((m) => m.userId === currentUser?.id)
@@ -301,6 +450,24 @@ export default function KanbanBoardPage() {
     setAssigneeValue('')
   }
 
+  // ── Stats ─────────────────────────────────────────────────
+  const totalTickets   = tickets.length
+  const openTickets    = tickets.filter(t => !t.closedAt).length
+  const closedTickets  = tickets.filter(t => !!t.closedAt).length
+  const withPr         = tickets.filter(t => t.hasPr).length
+  const openPool       = tickets.filter(t => t.assignmentMode === 'OPEN_POOL' && !t.assigneeId).length
+  const completionRate = totalTickets > 0 ? Math.round((closedTickets / totalTickets) * 100) : 0
+
+  // Per-member ticket counts (open only)
+  const ticketsByMember = members
+    .map(m => ({
+      member: m,
+      open:   tickets.filter(t => t.assigneeId === m.userId && !t.closedAt).length,
+      closed: tickets.filter(t => t.assigneeId === m.userId && !!t.closedAt).length,
+    }))
+    .filter(x => x.open + x.closed > 0)
+    .sort((a, b) => b.open - a.open)
+
   // ── Render ─────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -330,6 +497,42 @@ export default function KanbanBoardPage() {
         <h1 className="text-base font-bold text-gray-900">Kanban Board</h1>
         <div className="flex-1" />
 
+        {/* Chat button */}
+        <Link
+          href={`/${workspaceId}/projects/${projectId}/chat`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition"
+        >
+          <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor">
+            <path d="M216,48H40A16,16,0,0,0,24,64V224a8,8,0,0,0,13,6.22L72,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM40,64H216V192H69.33a8,8,0,0,0-5.16,1.88L40,213.26V64Z"/>
+          </svg>
+          Chat
+        </Link>
+
+        {/* Meetings button */}
+        <Link
+          href={`/${workspaceId}/projects/${projectId}/meetings`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition"
+        >
+          <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor">
+            <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24ZM80,112a8,8,0,0,1,8-8h80a8,8,0,0,1,0,16H88A8,8,0,0,1,80,112Zm0,40a8,8,0,0,1,8-8h80a8,8,0,0,1,0,16H88A8,8,0,0,1,80,152Z"/>
+          </svg>
+          Meetings
+        </Link>
+
+        <button
+          onClick={() => setShowActivity(v => !v)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition ${
+            showActivity
+              ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
+              : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+          }`}
+        >
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Activity
+        </button>
+
         {isPmOrAdmin && (
           <Link
             href={`/${workspaceId}/projects/${projectId}/settings`}
@@ -358,6 +561,81 @@ export default function KanbanBoardPage() {
           </Link>
         )}
       </div>
+
+      {/* ── Stats bar ── */}
+      {!isLoading && totalTickets > 0 && (
+        <div className="px-6 py-2.5 border-b border-gray-100 bg-gray-50/60 shrink-0">
+          {/* Row 1: overview counts */}
+          <div className="flex items-center gap-6 overflow-x-auto">
+            <StatChip label="Total" value={totalTickets} color="text-gray-700" />
+            <StatChip label="Open" value={openTickets} color="text-indigo-600" />
+            <StatChip label="Closed" value={closedTickets} color="text-emerald-600" />
+            <StatChip label="With PR" value={withPr} color="text-violet-600" />
+            {openPool > 0 && <StatChip label="Open Pool" value={openPool} color="text-orange-500" />}
+
+            {/* Storage stats */}
+            {storageStats && (
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 shrink-0">
+                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="text-gray-400">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                </svg>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        storageStats.usedBytes / storageStats.limitBytes > 0.9
+                          ? 'bg-red-400'
+                          : storageStats.usedBytes / storageStats.limitBytes > 0.7
+                          ? 'bg-amber-400'
+                          : 'bg-indigo-400'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.round(storageStats.usedBytes * 100 / storageStats.limitBytes))}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-gray-500">
+                    {formatBytes(storageStats.usedBytes)} / {formatBytes(storageStats.limitBytes)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 ml-auto shrink-0">
+              <span className="text-[11px] text-gray-400">Completion</span>
+              <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-400 rounded-full transition-all"
+                  style={{ width: `${completionRate}%` }}
+                />
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-600 w-8">{completionRate}%</span>
+            </div>
+          </div>
+
+          {/* Row 2: per-member breakdown */}
+          {ticketsByMember.length > 0 && (
+            <div className="flex items-center gap-3 mt-2 overflow-x-auto">
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest shrink-0">By member</span>
+              {ticketsByMember.map(({ member, open, closed }) => {
+                const name = member.displayName || member.email || member.user?.displayName || member.user?.email || member.userId.slice(0, 8)
+                const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length
+                return (
+                  <div key={member.userId} className="flex items-center gap-1.5 shrink-0">
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${AVATAR_COLORS[colorIdx]} text-white text-[9px] font-bold`}>
+                      {initials}
+                    </span>
+                    <span className="text-[11px] text-gray-600 max-w-[80px] truncate">{name}</span>
+                    <span className="text-[11px] font-semibold text-indigo-600">{open}</span>
+                    {closed > 0 && (
+                      <span className="text-[10px] text-gray-400">+{closed}✓</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Board + side panel ── */}
       <div className="flex-1 overflow-hidden flex">
@@ -433,22 +711,30 @@ export default function KanbanBoardPage() {
                                 : 'border-gray-200'
                             }`}
                           >
-                            {/* Top badges */}
-                            {(ticket.assignmentMode === 'OPEN_POOL' ||
-                              ticket.closedAt) && (
-                              <div className="flex gap-1 mb-2 flex-wrap">
-                                {ticket.assignmentMode === 'OPEN_POOL' && !ticket.assigneeId && (
-                                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
-                                    Open Pool
-                                  </span>
-                                )}
-                                {ticket.closedAt && (
-                                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
-                                    Closed
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            {/* Top row: ticket code + status badges */}
+                            <div className="flex items-center gap-1 mb-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                {ticket.ticketCode}
+                              </span>
+                              {ticket.hasPr && (
+                                <span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
+                                  <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"/>
+                                  </svg>
+                                  PR
+                                </span>
+                              )}
+                              {ticket.assignmentMode === 'OPEN_POOL' && !ticket.assigneeId && (
+                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
+                                  Open Pool
+                                </span>
+                              )}
+                              {ticket.closedAt && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
+                                  Closed
+                                </span>
+                              )}
+                            </div>
 
                             {/* Title */}
                             <p
@@ -599,41 +885,95 @@ export default function KanbanBoardPage() {
           )}
         </div>
 
+        {/* ── Activity feed panel ── */}
+        {showActivity && (
+          <div className="w-[320px] shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="text-indigo-500">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-semibold text-gray-800">Activity</span>
+              <span className="text-xs text-gray-400 ml-1">{activities.length} events</span>
+              <button onClick={() => setShowActivity(false)} className="ml-auto text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+              {activitiesLoading ? (
+                <div className="flex items-center justify-center h-20">
+                  <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : activities.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center mt-6">No activity yet.</p>
+              ) : (
+                <div className="relative">
+                  {/* Timeline line */}
+                  <div className="absolute left-[15px] top-0 bottom-0 w-px bg-gray-100" />
+                  <div className="space-y-0">
+                    {activities.map((a, idx) => (
+                      <ActivityRow key={a.id} activity={a} isLast={idx === activities.length - 1} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── Ticket detail side panel ── */}
         {selectedTicket && (
           <div className="w-[380px] shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
             {/* Panel header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
-              <span
-                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                  selectedTicket.closedAt
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-indigo-100 text-indigo-700'
-                }`}
-              >
-                {selectedTicket.closedAt ? 'Closed' : 'Open'}
-              </span>
-              <div className="flex-1" />
-              <button
-                onClick={closeDetail}
-                className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-100"
-                title="Close"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+            <div className="px-4 py-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                {/* Ticket code — copy on click */}
+                <button
+                  className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition"
+                  title="Click to copy ticket code"
+                  onClick={() => navigator.clipboard.writeText(selectedTicket.ticketCode).then(() => toast.success('Copied!'))}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                  {selectedTicket.ticketCode}
+                </button>
+                <span
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                    selectedTicket.closedAt
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-indigo-100 text-indigo-700'
+                  }`}
+                >
+                  {selectedTicket.closedAt ? 'Closed' : 'Open'}
+                </span>
+                {selectedTicket.hasPr && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 flex items-center gap-1">
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"/>
+                    </svg>
+                    PR linked
+                  </span>
+                )}
+                <div className="flex-1" />
+                <button
+                  onClick={closeDetail}
+                  className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-100"
+                  title="Close"
+                >
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {/* PR naming hint */}
+              {!selectedTicket.hasPr && (
+                <p className="mt-1.5 text-[10px] text-gray-400">
+                  Name your PR:{' '}
+                  <span className="font-mono text-gray-500 bg-gray-100 px-1 rounded">
+                    [{selectedTicket.ticketCode}] description
+                  </span>
+                </p>
+              )}
             </div>
 
             {/* Scrollable body */}
@@ -892,6 +1232,74 @@ export default function KanbanBoardPage() {
                   </div>
                 </div>
               )}
+
+              {/* ── Attachments ── */}
+              <div>
+                <label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
+                  Attachments
+                </label>
+
+                {/* Uploaded files */}
+                {attachments.length > 0 && (
+                  <div className="mt-1.5 space-y-1.5">
+                    {attachments.map(att => (
+                      <div key={att.id} className="group flex items-center gap-2 p-2 rounded-lg border border-gray-100 hover:border-gray-200 bg-gray-50">
+                        {att.resourceType === 'image' ? (
+                          <a href={att.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                            <img src={att.url} alt={att.fileName} className="w-10 h-10 object-cover rounded" />
+                          </a>
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-violet-100 flex items-center justify-center shrink-0">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="text-violet-600">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9A2.25 2.25 0 0013.5 5.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <a href={att.url} target="_blank" rel="noopener noreferrer"
+                            className="text-xs font-medium text-gray-700 hover:text-indigo-600 truncate block leading-tight">
+                            {att.fileName}
+                          </a>
+                          <p className="text-[10px] text-gray-400">{formatBytes(att.bytes)}</p>
+                        </div>
+                        <button
+                          onClick={() => deleteAttachmentMutation.mutate({ ticketId: selectedTicket.id, attachmentId: att.id })}
+                          disabled={deleteAttachmentMutation.isPending}
+                          className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition p-1 shrink-0"
+                        >
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload(file)
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-gray-200 rounded-lg text-xs text-gray-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition disabled:opacity-50"
+                >
+                  {uploading ? (
+                    <><div className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin" /> Uploading...</>
+                  ) : (
+                    <><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg> Add image / video</>
+                  )}
+                </button>
+              </div>
 
               {/* ── GitHub PR ── */}
               <div>

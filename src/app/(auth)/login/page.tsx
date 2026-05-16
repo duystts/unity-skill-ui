@@ -56,6 +56,30 @@ export default function LoginPage() {
   const setMode = useUIStore((s) => s.setMode)
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [githubLoading, setGithubLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true)
+    try {
+      const res = await apiClient.get<{ data: { authUrl: string } }>('/auth/google/login')
+      window.location.href = res.data.data.authUrl
+    } catch {
+      setServerError('Failed to connect to Google. Please try again.')
+      setGoogleLoading(false)
+    }
+  }
+
+  const handleGithubLogin = async () => {
+    setGithubLoading(true)
+    try {
+      const res = await apiClient.get<{ data: { authUrl: string } }>('/auth/github/login')
+      window.location.href = res.data.data.authUrl
+    } catch {
+      setServerError('Failed to connect to GitHub. Please try again.')
+      setGithubLoading(false)
+    }
+  }
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
@@ -139,6 +163,12 @@ export default function LoginPage() {
             <span className="font-bold text-gray-900 text-sm">unity_skill</span>
           </div>
 
+          {/* back to home */}
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition mb-5 -mt-1">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back to home
+          </Link>
+
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Sign in</h1>
           <p className="text-sm text-gray-500 mb-6">
             Don&apos;t have an account?{' '}
@@ -149,19 +179,31 @@ export default function LoginPage() {
           <div className="space-y-2.5 mb-5">
             <button
               type="button"
-              disabled
-              title="GitHub OAuth coming soon"
-              className="w-full flex items-center justify-center gap-2.5 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGithubLogin}
+              disabled={githubLoading}
+              className="w-full flex items-center justify-center gap-2.5 bg-[#24292F] hover:bg-gray-700 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <GithubIcon /> Continue with GitHub
+              {githubLoading ? (
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : <GithubIcon />}
+              {githubLoading ? 'Redirecting to GitHub…' : 'Continue with GitHub'}
             </button>
             <button
               type="button"
-              disabled
-              title="Google OAuth coming soon"
-              className="w-full flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <GoogleIcon /> Continue with Google
+              {googleLoading ? (
+                <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : <GoogleIcon />}
+              {googleLoading ? 'Redirecting to Google…' : 'Continue with Google'}
             </button>
           </div>
 
