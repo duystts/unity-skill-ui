@@ -137,88 +137,113 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
         </div>
       </div>
 
-      {/* product mockup */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 mt-12">
+      {/* product mockup — kanban board */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 mt-12">
         <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-indigo-100/50 overflow-hidden bg-white">
           {/* window chrome */}
           <div className="bg-gray-100 border-b border-gray-200 flex items-center gap-1.5 px-4 py-2.5">
             <span className="w-3 h-3 rounded-full bg-red-400" />
             <span className="w-3 h-3 rounded-full bg-yellow-400" />
             <span className="w-3 h-3 rounded-full bg-green-400" />
-            <span className="ml-3 text-xs text-gray-400 font-mono">unity-skill.dev/u/minh-nguyen</span>
+            <span className="ml-3 text-xs text-gray-400 font-mono">unity-skill.dev / workspace / kanban</span>
           </div>
-          {/* app interior */}
-          <div className="grid grid-cols-[200px_1fr] h-[420px]">
-            {/* sidebar */}
-            <div className="border-r border-gray-100 bg-gray-50 p-4 flex flex-col gap-1">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Profile</p>
-              {['Overview', 'Skills', 'Projects', 'Activity', 'Reviews'].map((s, i) => (
-                <div key={s} className={`text-sm px-3 py-1.5 rounded-lg cursor-pointer ${i === 0 ? 'bg-indigo-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  {s}
+
+          <div className="grid grid-cols-[180px_1fr] h-[400px]">
+            {/* sidebar — dark, matches real app */}
+            <div className="bg-slate-900 flex flex-col h-full">
+              <div className="px-3 pt-3 pb-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Workspace</div>
+              <div className="mx-2 mb-2 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-800">
+                <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">US</div>
+                <span className="text-xs text-slate-300 truncate">unity_skill</span>
+              </div>
+              <div className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Menu</div>
+              {[
+                { label: 'Projects', active: true },
+                { label: 'My tickets', active: false },
+                { label: 'Skill profile', active: false },
+                { label: 'Members', active: false },
+              ].map((item) => (
+                <div key={item.label} className={`mx-2 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${item.active ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>
+                  {item.label}
                 </div>
               ))}
-              <div className="mt-auto">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Mode</p>
-                <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 gap-0.5">
-                  <div className="flex-1 text-center py-1 text-xs bg-indigo-600 text-white rounded-md font-medium">Serious</div>
-                  <div className="flex-1 text-center py-1 text-xs text-gray-500 rounded-md">Character</div>
-                </div>
+              <div className="mt-auto border-t border-slate-800 p-3 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">M</div>
+                <span className="text-xs text-slate-300 truncate">Minh Nguyen</span>
               </div>
             </div>
-            {/* main content */}
-            <div className="p-5 overflow-hidden">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-lg">M</div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Minh Nguyen</p>
-                  <div className="flex gap-2 mt-1">
-                    <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-full">backend · 4y</span>
-                    <span className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full flex items-center gap-1"><CheckIcon size={10} /> verified</span>
-                  </div>
+
+            {/* main — kanban */}
+            <div className="flex flex-col bg-white overflow-hidden">
+              {/* topbar */}
+              <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">←</span>
+                  <span className="text-sm font-semibold text-gray-900">Kanban Board</span>
                 </div>
-                <button className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-gray-300 transition">Share</button>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Chat</span>
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Meetings</span>
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Settings</span>
+                </div>
               </div>
 
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Skills (auto-extracted)</p>
-              <div className="space-y-2.5 mb-5">
-                {[['Go', 0.92, '124 PRs'], ['Postgres', 0.78, '38 PRs'], ['Kafka', 0.55, '12 PRs'], ['React', 0.40, '8 PRs']].map(([skill, val, count]) => (
-                  <div key={skill as string} className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-700 w-16">{skill}</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${(val as number) * 100}%` }} />
+              {/* columns */}
+              <div className="flex gap-3 p-4 overflow-x-auto flex-1">
+                {/* To Do */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs font-semibold text-gray-700">To Do</span>
+                    <span className="ml-auto text-xs text-gray-400">2</span>
+                  </div>
+                  {['Setup CI/CD pipeline', 'Write unit tests for Auth'].map((t) => (
+                    <div key={t} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
+                      <p className="text-xs text-gray-700 leading-snug">{t}</p>
                     </div>
-                    <span className="text-xs text-gray-400 w-12 text-right">{count}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Recent activity</p>
-              <div className="space-y-2">
-                {[
-                  ['#fix race in batcher', 'Go', '14:32'],
-                  ['+ design doc: outbox v2', 'Postgres', '11:08'],
-                  ['review: pr/4821 (approved)', 'review', '09:51'],
-                ].map(([title, kind, time], i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs text-gray-500 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                    <span className="flex-1">{title}</span>
-                    <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full">{kind}</span>
-                    <span className="text-gray-400">{time}</span>
+                {/* In Progress */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs font-semibold text-gray-700">In Progress</span>
+                    <span className="ml-auto text-xs text-gray-400">3</span>
                   </div>
-                ))}
+                  {[
+                    { title: 'GitHub webhook for PR tracking', avatar: 'M', color: 'bg-indigo-500' },
+                    { title: 'Skill auto-extraction from commits', avatar: 'A', color: 'bg-pink-500' },
+                    { title: 'Refactor workspace settings', avatar: 'H', color: 'bg-amber-500' },
+                  ].map((t) => (
+                    <div key={t.title} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
+                      <p className="text-xs text-gray-700 leading-snug mb-2">{t.title}</p>
+                      <div className={`w-5 h-5 rounded-full ${t.color} flex items-center justify-center text-[9px] font-bold text-white`}>{t.avatar}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Done */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                    <span className="text-xs font-semibold text-gray-700">Done</span>
+                    <span className="ml-auto text-xs text-gray-400">3</span>
+                  </div>
+                  {[
+                    { title: 'JWT refresh token rotation', avatar: 'M', color: 'bg-indigo-500' },
+                    { title: 'Kanban drag-and-drop board', avatar: 'A', color: 'bg-pink-500' },
+                    { title: 'Meeting transcript upload', avatar: 'H', color: 'bg-amber-500' },
+                  ].map((t) => (
+                    <div key={t.title} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm opacity-70">
+                      <p className="text-xs text-gray-500 leading-snug mb-2 line-through decoration-gray-300">{t.title}</p>
+                      <div className={`w-5 h-5 rounded-full ${t.color} flex items-center justify-center text-[9px] font-bold text-white`}>{t.avatar}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* logo strip */}
-      <div className="mt-10 text-center">
-        <p className="text-xs text-gray-400 mb-4">Trusted by teams at</p>
-        <div className="flex items-center justify-center gap-8 flex-wrap">
-          {['Nimbus', 'Ladle', 'Stripe-ish', 'Hex', 'Figment', 'Quanta'].map((n) => (
-            <span key={n} className="text-sm font-semibold text-gray-300 tracking-wide">{n}</span>
-          ))}
         </div>
       </div>
     </section>
@@ -450,42 +475,38 @@ function Pricing() {
   )
 }
 
-// ── Integrations ──────────────────────────────────────────────────────────────
-const INTEGRATIONS = [
-  { name: 'GitHub', emoji: '🐙', desc: 'PRs, reviews, commits' },
-  { name: 'Slack', emoji: '💬', desc: 'Help threads, mentions' },
-  { name: 'Calendar', emoji: '📅', desc: 'Meetings, 1:1s' },
-  { name: 'Linear', emoji: '⚡', desc: 'Issues, sprints' },
-  { name: 'Notion', emoji: '📄', desc: 'Design docs' },
-  { name: 'Figma', emoji: '🎨', desc: 'Files, comments' },
-]
+// ── Integration icon ──────────────────────────────────────────────────────────
+const IntegrationIcons: Record<string, { bg: string; fg: string }> = {
+  GitHub: { bg: 'bg-[#24292F]', fg: 'text-white' },
+}
 
 function Integrations() {
+  const icon = IntegrationIcons['GitHub']
   return (
     <section id="integrations" className="py-20 bg-slate-50">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Integrations</span>
+          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Integration</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 tracking-tight">
-            Plug into where the work<br />actually happens.
+            Built on top of where<br />your work already lives.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {INTEGRATIONS.map((it) => (
-            <div key={it.name} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:border-indigo-200 transition">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl shrink-0">
-                {it.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 text-sm">{it.name}</p>
-                <p className="text-xs text-gray-400">{it.desc}</p>
-              </div>
-              <button className="text-xs border border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 px-3 py-1.5 rounded-lg transition shrink-0">
-                Connect
-              </button>
+        <div className="flex justify-center">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center gap-6 shadow-sm max-w-sm w-full">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${icon.bg} ${icon.fg}`}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
             </div>
-          ))}
+            <div>
+              <p className="font-bold text-gray-900 text-lg">GitHub</p>
+              <p className="text-sm text-gray-500 mt-0.5">PRs · code reviews · commits</p>
+              <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                Connect your repos and every contribution is automatically captured, verified, and mapped to skills.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -495,32 +516,21 @@ function Integrations() {
 // ── Footer ────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-12">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8">
+    <footer className="bg-slate-900 text-white py-10">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <p className="font-bold text-white text-base mb-2">unity_skill</p>
-          <p className="text-sm text-slate-400 max-w-[260px] leading-relaxed">
-            Verified work, automatically documented. Stop self-reporting. Let the receipts speak.
-          </p>
+          <p className="font-bold text-white text-base mb-1">unity_skill</p>
+          <p className="text-sm text-slate-400">Verified work, automatically documented.</p>
         </div>
-        {[
-          { heading: 'Product', items: ['Features', 'Pricing', 'Integrations', 'Changelog'] },
-          { heading: 'Company', items: ['About', 'Manifesto', 'Careers', 'Contact'] },
-          { heading: 'Resources', items: ['Docs', 'API', 'Status', 'Privacy'] },
-        ].map((col) => (
-          <div key={col.heading}>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">{col.heading}</p>
-            <div className="space-y-2">
-              {col.items.map((item) => (
-                <p key={item} className="text-sm text-slate-300 hover:text-white cursor-pointer transition">{item}</p>
-              ))}
-            </div>
-          </div>
-        ))}
+        <nav className="flex items-center gap-6 text-sm text-slate-400">
+          <a href="#features" className="hover:text-white transition">Features</a>
+          <a href="#pricing" className="hover:text-white transition">Pricing</a>
+          <a href="#integrations" className="hover:text-white transition">Integration</a>
+        </nav>
       </div>
-      <div className="max-w-6xl mx-auto px-6 mt-10 pt-6 border-t border-slate-800 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 mt-8 pt-6 border-t border-slate-800 flex items-center justify-between">
         <p className="text-xs text-slate-500">© 2026 unity_skill. All rights reserved.</p>
-        <p className="text-xs text-slate-500">Made with ☕ in Hanoi</p>
+        <p className="text-xs text-slate-500">Made with ☕ in Ho Chi Minh City</p>
       </div>
     </footer>
   )

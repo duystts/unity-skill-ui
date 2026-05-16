@@ -1,21 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/apiClient';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function ConsentPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState('');
+
+  useEffect(() => {
+    if (user?.displayName) setDisplayName(user.displayName);
+  }, [user?.displayName]);
 
   const handleConsent = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Update display name if changed
+      const trimmed = displayName.trim();
+      if (trimmed && trimmed !== user?.displayName) {
+        const res = await apiClient.patch<{ data: { id: string; displayName: string } }>(
+          '/users/me/display-name',
+          { displayName: trimmed }
+        );
+        if (user) setUser({ ...user, displayName: res.data.data.displayName });
+      }
       await apiClient.post('/users/me/consent');
-      // AC3: redirect to workspace after consent
-      router.replace('/');
+      router.replace('/workspaces');
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -60,6 +76,21 @@ export default function ConsentPage() {
               without your explicit action.
             </p>
           </div>
+        </div>
+
+        {/* Display name */}
+        <div className="mb-6">
+          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+            Your display name
+          </label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="How teammates will see you"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          />
+          <p className="text-xs text-gray-400 mt-1">You can change this anytime in settings.</p>
         </div>
 
         {error && (

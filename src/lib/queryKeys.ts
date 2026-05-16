@@ -11,7 +11,8 @@ export const queryKeys = {
     invitations: (workspaceId: string) => ['workspaces', workspaceId, 'invitations'] as const,
   },
   projects: {
-    all: (workspaceId: string) => ['projects', workspaceId] as const,
+    all: (workspaceId: string) => ['projects', workspaceId, 'active'] as const,
+    archived: (workspaceId: string) => ['projects', workspaceId, 'archived'] as const,
     detail: (workspaceId: string, projectId: string) =>
       ['projects', workspaceId, projectId] as const,
     stages: (workspaceId: string, projectId: string) =>
@@ -26,6 +27,13 @@ export const queryKeys = {
       ['tickets', workspaceId, projectId, ticketId] as const,
     mine: (workspaceId: string) =>
       ['tickets', workspaceId, 'my-tickets'] as const,
+    activities: (workspaceId: string, projectId: string) =>
+      ['tickets', workspaceId, projectId, 'activities'] as const,
+    attachments: (workspaceId: string, ticketId: string) =>
+      ['tickets', workspaceId, ticketId, 'attachments'] as const,
+  },
+  storage: {
+    stats: (workspaceId: string) => ['storage', workspaceId, 'stats'] as const,
   },
   chat: {
     messages: (workspaceId: string, projectId: string) =>
