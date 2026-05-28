@@ -157,6 +157,12 @@ export interface ChatMessage {
   createdAt: string // ISO 8601
 }
 
+/** AI assistant chat turn — kept on frontend, sent as history each request */
+export interface AiChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 /** Shape returned by GET /workspaces/{id}/members  (flat — no nested user) */
 export interface WorkspaceMember {
   userId: string
