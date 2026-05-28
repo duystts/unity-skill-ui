@@ -55,7 +55,7 @@ const STAGE_TEMPLATES: StageTemplate[] = [
     label: 'Basic',
     description: 'Simple 3-column board for small teams',
     icon: <IconSquaresFour />,
-    color: 'indigo',
+    color: 'cobalt',
     stages: [
       { name: 'To Do',       isClosedState: false },
       { name: 'In Progress', isClosedState: false },
@@ -108,7 +108,7 @@ const STAGE_TEMPLATES: StageTemplate[] = [
 ]
 
 const COLOR_MAP: Record<string, { card: string; badge: string; btn: string }> = {
-  indigo:  { card: 'border-indigo-200 bg-indigo-50/60',  badge: 'bg-indigo-100 text-indigo-700',  btn: 'bg-indigo-600 hover:bg-indigo-700' },
+  cobalt:  { card: 'border-cobalt-200 bg-cobalt-50/60',  badge: 'bg-cobalt-100 text-cobalt-700',  btn: 'bg-cobalt-600 hover:bg-cobalt-700' },
   violet:  { card: 'border-violet-200 bg-violet-50/60',  badge: 'bg-violet-100 text-violet-700',  btn: 'bg-violet-600 hover:bg-violet-700' },
   emerald: { card: 'border-emerald-200 bg-emerald-50/60', badge: 'bg-emerald-100 text-emerald-700', btn: 'bg-emerald-600 hover:bg-emerald-700' },
   rose:    { card: 'border-rose-200 bg-rose-50/60',      badge: 'bg-rose-100 text-rose-700',      btn: 'bg-rose-600 hover:bg-rose-700' },
@@ -410,9 +410,9 @@ export default function ProjectSettingsPage() {
         {(stages.length === 0 || showTemplates) && !isLoading && (
           <div className={`mb-6 ${stages.length === 0 ? '' : 'border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50'}`}>
             {stages.length === 0 && (
-              <div className="mb-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                <p className="text-sm font-semibold text-indigo-800 mb-0.5">Get started with a template</p>
-                <p className="text-xs text-indigo-600">Pick a preset to create all stages instantly, or add them manually below.</p>
+              <div className="mb-4 p-4 bg-cobalt-50 border border-cobalt-100 rounded-xl">
+                <p className="text-sm font-semibold text-cobalt-800 mb-0.5">Get started with a template</p>
+                <p className="text-xs text-cobalt-600">Pick a preset to create all stages instantly, or add them manually below.</p>
               </div>
             )}
             {stages.length > 0 && (
@@ -655,7 +655,7 @@ export default function ProjectSettingsPage() {
                   <button
                     onClick={() => unarchiveMutation.mutate()}
                     disabled={unarchiveMutation.isPending}
-                    className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50"
+                    className="text-xs bg-cobalt-600 hover:bg-cobalt-700 text-white px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50"
                   >
                     {unarchiveMutation.isPending ? 'Restoring…' : 'Yes, restore'}
                   </button>
@@ -669,7 +669,7 @@ export default function ProjectSettingsPage() {
               ) : (
                 <button
                   onClick={() => setConfirmArchive(true)}
-                  className="shrink-0 text-xs border border-indigo-300 text-indigo-600 hover:bg-indigo-50 px-4 py-1.5 rounded-lg font-medium transition"
+                  className="shrink-0 text-xs border border-cobalt-300 text-cobalt-600 hover:bg-cobalt-50 px-4 py-1.5 rounded-lg font-medium transition"
                 >
                   Restore project
                 </button>
@@ -748,7 +748,7 @@ export default function ProjectSettingsPage() {
               <button
                 onClick={connectGithub}
                 disabled={connectingGithub}
-                className="text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition disabled:opacity-50 flex items-center gap-1"
+                className="text-xs text-gray-500 hover:text-cobalt-600 border border-gray-200 hover:border-cobalt-300 px-2.5 py-1 rounded-lg transition disabled:opacity-50 flex items-center gap-1"
                 title="Re-authorize GitHub to refresh permissions"
               >
                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -766,12 +766,12 @@ export default function ProjectSettingsPage() {
                 value={repoInput}
                 onChange={e => setRepoInput(e.target.value)}
                 placeholder="owner/repo-name"
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cobalt-300"
               />
               <button
                 onClick={() => webhookMutation.mutate(repoInput.trim())}
                 disabled={!repoInput.includes('/') || webhookMutation.isPending}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition disabled:opacity-50 whitespace-nowrap"
+                className="bg-cobalt-600 hover:bg-cobalt-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition disabled:opacity-50 whitespace-nowrap"
               >
                 {webhookMutation.isPending ? 'Activating…' : 'Activate Webhook'}
               </button>

@@ -10,55 +10,61 @@ import { queryKeys } from '@/lib/queryKeys'
 import { apiClient } from '@/lib/apiClient'
 import type { Workspace, WorkspaceMember } from '@/types'
 
-// Icons as simple SVGs
-function IconGrid() {
+// IntelliJ-style two-tone glyphs (per design system spec)
+function GlyphProjects() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="0" y="0" width="7" height="7" rx="1.2" fill="#8aabff"/>
+      <rect x="9" y="0" width="7" height="7" rx="1.2" fill="#3574f0"/>
+      <rect x="0" y="9" width="7" height="7" rx="1.2" fill="#3574f0"/>
+      <rect x="9" y="9" width="7" height="7" rx="1.2" fill="#8aabff"/>
     </svg>
   )
 }
-function IconCheck() {
+function GlyphTickets() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="0" y="2" width="16" height="12" rx="2" fill="#334155"/>
+      <path d="M3.5 8l2.5 2.5L12 4.5" stroke="#3fb950" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }
-function IconBolt() {
+function GlyphWorkload() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <path d="M9 0L0 10h5l-2 6L14 6H8.5z" fill="#f59e0b"/>
     </svg>
   )
 }
-function IconSparkle() {
+function GlyphHealth() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3l1.5 4.5L11 9l-4.5 1.5L5 15l-1.5-4.5L-1 9l4.5-1.5L5 3zM19 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <path d="M8 14s-5-3-5-7a3 3 0 015-2 3 3 0 015 2c0 4-5 7-5 7z" fill="#ec4899"/>
     </svg>
   )
 }
-function IconX() {
+function GlyphBlocked() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <circle cx="8" cy="8" r="7" fill="none" stroke="#ef4444" strokeWidth="1.5"/>
+      <path d="M3.5 3.5l9 9" stroke="#ef4444" strokeWidth="1.5"/>
     </svg>
   )
 }
-function IconEye() {
+function GlyphSkill() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <circle cx="8" cy="8" r="7" fill="#1e293b" stroke="#a78bfa" strokeWidth="1.5"/>
+      <circle cx="8" cy="8" r="2.5" fill="#a78bfa"/>
     </svg>
   )
 }
-function IconUsers() {
+function GlyphMembers() {
   return (
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <circle cx="5" cy="6" r="2.5" fill="#10b981"/>
+      <circle cx="11" cy="6" r="2.5" fill="#06b6d4"/>
+      <path d="M1 14a4 4 0 014-4h6a4 4 0 014 4" fill="#475569"/>
     </svg>
   )
 }
@@ -71,13 +77,13 @@ function IconChevronRight() {
 }
 
 const NAV_ITEMS = [
-  { label: 'Projects',          path: 'projects',          icon: <IconGrid />,    pmOnly: false },
-  { label: 'My tickets',        path: 'my-tickets',        icon: <IconCheck />,   pmOnly: false },
-  { label: 'Workload',          path: 'workload',          icon: <IconBolt />,    pmOnly: true  },
-  { label: 'Team health',       path: 'team-health',       icon: <IconSparkle />, pmOnly: true  },
-  { label: 'Blocked decisions', path: 'blocked-decisions', icon: <IconX />,       pmOnly: true  },
-  { label: 'Skill profile',     path: 'skill-profile',     icon: <IconEye />,     pmOnly: false },
-  { label: 'Members',           path: 'settings/members',  icon: <IconUsers />,   pmOnly: false },
+  { label: 'Projects',          path: 'projects',          icon: <GlyphProjects />, pmOnly: false },
+  { label: 'My tickets',        path: 'my-tickets',        icon: <GlyphTickets />,  pmOnly: false },
+  { label: 'Workload',          path: 'workload',          icon: <GlyphWorkload />, pmOnly: true  },
+  { label: 'Team health',       path: 'team-health',       icon: <GlyphHealth />,   pmOnly: true  },
+  { label: 'Blocked decisions', path: 'blocked-decisions', icon: <GlyphBlocked />,  pmOnly: true  },
+  { label: 'Skill profile',     path: 'skill-profile',     icon: <GlyphSkill />,    pmOnly: false },
+  { label: 'Members',           path: 'settings/members',  icon: <GlyphMembers />,  pmOnly: false },
 ]
 
 function AppSidebar({ workspaceId }: { workspaceId: string }) {
@@ -142,7 +148,7 @@ function AppSidebar({ workspaceId }: { workspaceId: string }) {
           onClick={() => setWsOpen((v) => !v)}
           className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition text-sm"
         >
-          <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+          <div className="w-5 h-5 rounded bg-cobalt-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
             {workspaceInitials}
           </div>
           <span className="flex-1 truncate text-left">{workspace?.name ?? workspaceId.slice(0, 12)}</span>
@@ -176,12 +182,12 @@ function AppSidebar({ workspaceId }: { workspaceId: string }) {
                       : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                   }`}
                 >
-                  <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                  <div className="w-6 h-6 rounded-md bg-cobalt-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
                     {initials}
                   </div>
                   <span className="flex-1 truncate text-left">{ws.name}</span>
                   {isCurrent && (
-                    <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" className="text-indigo-400 shrink-0">
+                    <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" className="text-cobalt-400 shrink-0">
                       <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/>
                     </svg>
                   )}
@@ -217,10 +223,10 @@ function AppSidebar({ workspaceId }: { workspaceId: string }) {
             <Link
               key={item.path}
               href={href}
-              className={`mx-2 flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition cursor-pointer ${
+              className={`mx-2 flex items-center gap-2.5 py-2 rounded-lg text-sm transition cursor-pointer ${
                 isActive
-                  ? 'bg-slate-800 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-slate-800 text-white font-medium pl-[10px] pr-3 border-l-2 border-cobalt-500'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800 px-3'
               }`}
             >
               {item.icon}
@@ -232,7 +238,7 @@ function AppSidebar({ workspaceId }: { workspaceId: string }) {
 
       {/* User section */}
       <div className="border-t border-slate-800 p-3 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+        <div className="w-7 h-7 rounded-full bg-cobalt-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
           {userInitials}
         </div>
         <span className="text-sm text-slate-300 truncate flex-1">

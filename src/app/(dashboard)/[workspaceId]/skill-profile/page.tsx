@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -35,7 +35,7 @@ interface PendingEvidence {
 }
 
 const AVATAR_COLORS = [
-  'bg-indigo-500', 'bg-violet-500', 'bg-emerald-500',
+  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
   'bg-amber-500', 'bg-rose-500', 'bg-cyan-500',
 ]
 
@@ -59,7 +59,7 @@ const SKILL_COLORS: Record<string, string> = {
 }
 
 const FALLBACK_SKILL_COLORS = [
-  'bg-indigo-100 text-indigo-700',
+  'bg-cobalt-100 text-cobalt-700',
   'bg-pink-100 text-pink-700',
   'bg-cyan-100 text-cyan-700',
 ]
@@ -69,7 +69,7 @@ function skillColor(name: string, idx: number) {
 }
 
 const PROJECT_BAR_COLORS = [
-  'bg-indigo-500', 'bg-violet-500', 'bg-emerald-500',
+  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
   'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-pink-500',
 ]
 
@@ -243,7 +243,7 @@ export default function SkillProfilePage() {
               {pendingEvidence.map((item) => (
                 <div key={item.id} className="flex items-start gap-3 bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-3">
                   <div className="flex-1 min-w-0">
-                    <span className="inline-block text-[11px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full mb-1.5">
+                    <span className="inline-block text-[11px] font-semibold text-cobalt-400 bg-cobalt-500/10 border border-cobalt-500/20 px-2 py-0.5 rounded-full mb-1.5">
                       {item.skillCategory}
                     </span>
                     <p className="text-sm text-[#c9d1d9] leading-relaxed">{item.aiSummary}</p>

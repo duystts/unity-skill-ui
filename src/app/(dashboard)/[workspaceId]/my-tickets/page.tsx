@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
@@ -47,7 +47,7 @@ export default function MyTicketsPage() {
         <div className="flex-1" />
         {tickets.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-cobalt-50 text-cobalt-700 px-2 py-0.5 rounded-full font-medium">
               {openCount} open
             </span>
             <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
@@ -101,8 +101,8 @@ export default function MyTicketsPage() {
                 >
                   {/* Project header */}
                   <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-slate-50">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-indigo-600">
+                    <div className="w-7 h-7 rounded-lg bg-cobalt-50 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-cobalt-600">
                         {(project?.name ?? projectId)[0].toUpperCase()}
                       </span>
                     </div>
@@ -130,12 +130,12 @@ export default function MyTicketsPage() {
                         {/* Status dot */}
                         <span
                           className={`w-2 h-2 rounded-full shrink-0 ${
-                            ticket.closedAt ? 'bg-emerald-400' : 'bg-indigo-400'
+                            ticket.closedAt ? 'bg-emerald-400' : 'bg-cobalt-400'
                           }`}
                         />
 
                         {/* Ticket code */}
-                        <span className="font-mono text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded shrink-0">
+                        <span className="font-mono text-[11px] font-semibold text-cobalt-500 bg-cobalt-50 px-1.5 py-0.5 rounded shrink-0">
                           {ticket.ticketCode}
                         </span>
 
@@ -169,7 +169,7 @@ export default function MyTicketsPage() {
                             className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                               ticket.closedAt
                                 ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-indigo-100 text-indigo-700'
+                                : 'bg-cobalt-100 text-cobalt-700'
                             }`}
                           >
                             {ticket.closedAt ? 'Done' : 'Open'}

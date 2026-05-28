@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -128,7 +128,7 @@ export default function PublicPortfolioPage() {
                   <h2 className="text-lg font-semibold text-gray-800">
                     {group.skillCategory}
                   </h2>
-                  <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-cobalt-50 text-cobalt-700 px-2 py-0.5 rounded">
                     {group.count} item{group.count !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -136,7 +136,7 @@ export default function PublicPortfolioPage() {
                   {group.items.map((item) => (
                     <li
                       key={item.id}
-                      className="border-l-2 border-indigo-200 pl-4 text-sm text-gray-700"
+                      className="border-l-2 border-cobalt-200 pl-4 text-sm text-gray-700"
                     >
                       <p>{item.developerNotes ?? item.aiSummary}</p>
                       {item.publishedAt && (

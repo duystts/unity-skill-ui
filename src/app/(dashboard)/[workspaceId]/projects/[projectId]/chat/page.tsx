@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -14,7 +14,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = [
-  'bg-indigo-500', 'bg-violet-500', 'bg-emerald-500',
+  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
   'bg-amber-500',  'bg-rose-500',   'bg-cyan-500',   'bg-pink-500',
 ]
 function Avatar({ name }: { name: string }) {
@@ -173,8 +173,8 @@ export default function ChatPage() {
         </button>
 
         {/* Chat icon */}
-        <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-          <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" className="text-indigo-600">
+        <div className="w-7 h-7 rounded-lg bg-cobalt-50 flex items-center justify-center shrink-0">
+          <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" className="text-cobalt-600">
             <path d="M216,48H40A16,16,0,0,0,24,64V224a8,8,0,0,0,13,6.22L72,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM40,64H216V192H69.33a8,8,0,0,0-5.16,1.88L40,213.26V64Z"/>
           </svg>
         </div>
@@ -192,12 +192,12 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-1">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-300">
-            <div className="w-5 h-5 border-2 border-indigo-300 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-cobalt-300 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
-              <svg width="28" height="28" viewBox="0 0 256 256" fill="currentColor" className="text-indigo-300">
+            <div className="w-14 h-14 rounded-2xl bg-cobalt-50 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 256 256" fill="currentColor" className="text-cobalt-300">
                 <path d="M216,48H40A16,16,0,0,0,24,64V224a8,8,0,0,0,13,6.22L72,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM40,64H216V192H69.33a8,8,0,0,0-5.16,1.88L40,213.26V64Z"/>
               </svg>
             </div>
@@ -251,7 +251,7 @@ export default function ChatPage() {
                       <div
                         className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap ${
                           isMe
-                            ? 'bg-indigo-600 text-white rounded-br-sm'
+                            ? 'bg-cobalt-600 text-white rounded-br-sm'
                             : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                         }`}
                       >
@@ -274,7 +274,7 @@ export default function ChatPage() {
 
       {/* ── Input bar ── */}
       <div className="px-4 py-3 border-t border-gray-100 bg-white shrink-0">
-        <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-50 transition">
+        <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-cobalt-300 focus-within:ring-2 focus-within:ring-cobalt-50 transition">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -287,7 +287,7 @@ export default function ChatPage() {
           <button
             onClick={sendMessage}
             disabled={!draft.trim() || sending}
-            className="w-8 h-8 rounded-xl flex items-center justify-center bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0 mb-0.5"
+            className="w-8 h-8 rounded-xl flex items-center justify-center bg-cobalt-600 text-white hover:bg-cobalt-700 transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0 mb-0.5"
           >
             {sending ? (
               <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
