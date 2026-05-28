@@ -1,8 +1,59 @@
 @import "tailwindcss";
 
+/* ── Design tokens — unity_skill ──────────────────────────────────── */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand cobalt (primary — replaces inherited indigo) */
+  --brand-cobalt-50:  #eef4ff;
+  --brand-cobalt-100: #dbeafe;
+  --brand-cobalt-200: #bfdbfe;
+  --brand-cobalt-300: #8aabff;
+  --brand-cobalt-400: #60a5fa;
+  --brand-cobalt-500: #3574f0;
+  --brand-cobalt-600: #2454d6;
+  --brand-cobalt-700: #1e40af;
+  --brand-cobalt-800: #1e3fa3;
+
+  /* Gradient pair */
+  --brand-violet-500: #7c3aed;
+  --brand-pink-500:   #db2777;
+  --brand-lime:       #bef264;
+
+  /* GitHub Dark (IDE surface) */
+  --gh-canvas:  #0d1117;
+  --gh-surface: #161b22;
+  --gh-subtle:  #21262d;
+  --gh-border:  #30363d;
+  --gh-muted:   #8b949e;
+  --gh-fg:      #c9d1d9;
+  --gh-link:    #58a6ff;
+  --gh-bright:  #f0f6fc;
+
+  /* Slate rail */
+  --slate-50:  #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  /* Gradients */
+  --grad-brand: linear-gradient(140deg, #2454d6 0%, #7c3aed 45%, #db2777 100%);
+  --grad-glow:  radial-gradient(closest-side, rgba(53,116,240,0.28), transparent);
+
+  /* Shadows */
+  --shadow-sm:          0 1px 2px 0 rgba(15,23,42,.05);
+  --shadow:             0 1px 3px 0 rgba(15,23,42,.10), 0 1px 2px -1px rgba(15,23,42,.08);
+  --shadow-md:          0 4px 6px -1px rgba(15,23,42,.08), 0 2px 4px -2px rgba(15,23,42,.06);
+  --shadow-lg:          0 10px 15px -3px rgba(15,23,42,.08), 0 4px 6px -4px rgba(15,23,42,.05);
+  --shadow-2xl:         0 25px 50px -12px rgba(15,23,42,.25);
+  --shadow-cobalt-glow: 0 20px 60px -20px rgba(53,116,240,0.45);
 }
 
 @theme inline {
@@ -10,17 +61,21 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Cobalt — used as `text-cobalt-*`, `bg-cobalt-*`, `ring-cobalt-*` etc. */
+  --color-cobalt-50:  #eef4ff;
+  --color-cobalt-100: #dbeafe;
+  --color-cobalt-200: #bfdbfe;
+  --color-cobalt-300: #8aabff;
+  --color-cobalt-400: #60a5fa;
+  --color-cobalt-500: #3574f0;
+  --color-cobalt-600: #2454d6;
+  --color-cobalt-700: #1e40af;
+  --color-cobalt-800: #1e3fa3;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
 }

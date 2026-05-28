@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -143,7 +143,7 @@ export default function TeamHealthPage() {
                 ? 'bg-red-400'
                 : isAvailable
                 ? 'bg-amber-400'
-                : 'bg-indigo-400';
+                : 'bg-cobalt-400';
               const barWidth = isOverloaded ? '100%' : isAvailable ? '30%' : '65%';
 
               return (
@@ -153,7 +153,7 @@ export default function TeamHealthPage() {
                 >
                   {/* Avatar + name */}
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600 shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-cobalt-100 flex items-center justify-center text-xs font-semibold text-cobalt-600 shrink-0">
                       {member.displayName[0]}
                     </div>
                     <span className="text-sm font-medium text-gray-900">{member.displayName}</span>

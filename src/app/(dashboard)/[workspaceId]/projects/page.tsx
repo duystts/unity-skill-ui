@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
         <div className="flex-1" />
         <button
           onClick={() => router.push(`/${workspaceId}/projects/new`)}
-          className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+          className="px-3 py-1.5 text-sm bg-cobalt-600 text-white rounded-lg hover:bg-cobalt-700 transition font-medium"
         >
           + New Project
         </button>
@@ -114,13 +114,13 @@ export default function ProjectsPage() {
           onClick={() => setTab('active')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition ${
             tab === 'active'
-              ? 'border-indigo-600 text-indigo-700 bg-white'
+              ? 'border-cobalt-600 text-cobalt-700 bg-white'
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
           Active
           {activeProjects.length > 0 && (
-            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-semibold ${tab === 'active' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
+            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-semibold ${tab === 'active' ? 'bg-cobalt-100 text-cobalt-700' : 'bg-gray-100 text-gray-500'}`}>
               {activeProjects.length}
             </span>
           )}
@@ -160,7 +160,7 @@ export default function ProjectsPage() {
                   <p className="text-gray-500 mb-4">No active projects yet</p>
                   <button
                     onClick={() => router.push(`/${workspaceId}/projects/new`)}
-                    className="text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline"
+                    className="text-cobalt-600 hover:text-cobalt-700 text-sm font-medium hover:underline"
                   >
                     + New Project
                   </button>
@@ -186,13 +186,13 @@ export default function ProjectsPage() {
                   className={`bg-white border rounded-xl p-4 transition ${
                     isArchived
                       ? 'border-gray-200 opacity-75 cursor-default'
-                      : 'border-gray-200 cursor-pointer hover:border-indigo-300 hover:shadow-sm'
+                      : 'border-gray-200 cursor-pointer hover:border-cobalt-300 hover:shadow-sm'
                   }`}
                 >
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isArchived ? 'bg-gray-100' : 'bg-indigo-50'}`}>
-                      <span className={`text-sm font-bold ${isArchived ? 'text-gray-400' : 'text-indigo-600'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isArchived ? 'bg-gray-100' : 'bg-cobalt-50'}`}>
+                      <span className={`text-sm font-bold ${isArchived ? 'text-gray-400' : 'text-cobalt-600'}`}>
                         {project.name[0].toUpperCase()}
                       </span>
                     </div>
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
                           {stats!.mine > 0 && (
                             <>
                               <span className="text-gray-200">|</span>
-                              <span className="text-indigo-600 font-medium">
+                              <span className="text-cobalt-600 font-medium">
                                 {stats!.mine} assigned to me
                               </span>
                             </>
@@ -262,7 +262,7 @@ export default function ProjectsPage() {
                       ) : (
                         <div className="flex h-1.5 rounded-full overflow-hidden bg-gray-100">
                           {stats!.open > 0 && (
-                            <div className="bg-indigo-400 h-full" style={{ width: `${(stats!.open / stats!.total) * 100}%` }} />
+                            <div className="bg-cobalt-400 h-full" style={{ width: `${(stats!.open / stats!.total) * 100}%` }} />
                           )}
                           {stats!.closed > 0 && (
                             <div className="bg-emerald-400 h-full" style={{ width: `${(stats!.closed / stats!.total) * 100}%` }} />
@@ -279,7 +279,7 @@ export default function ProjectsPage() {
                         Archived {new Date(project.archivedAt!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                       <button
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2.5 py-1 rounded-lg hover:bg-indigo-50 transition disabled:opacity-50"
+                        className="text-xs text-cobalt-600 hover:text-cobalt-800 font-medium px-2.5 py-1 rounded-lg hover:bg-cobalt-50 transition disabled:opacity-50"
                         disabled={unarchiveMutation.isPending}
                         onClick={(e) => {
                           e.stopPropagation()

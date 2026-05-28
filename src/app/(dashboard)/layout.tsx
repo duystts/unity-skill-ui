@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-cobalt-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Restoring session…</p>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // user có thể null vài ms sau khi fetch xong — hiện spinner thay vì crash
   if (!user) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-cobalt-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
         <Link
           href="/workspaces"
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition group"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-cobalt-600 hover:bg-cobalt-50 transition group"
         >
           <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor" className="shrink-0">
             <path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"/>

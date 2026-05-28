@@ -118,46 +118,41 @@ export default function RegisterPage() {
       {/* Centered card */}
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex">
 
-        {/* ── Left: brand panel — fixed 320px ── */}
-        <div className="hidden lg:flex w-80 shrink-0 flex-col justify-between bg-gradient-to-br from-indigo-600 to-violet-700 p-8 relative overflow-hidden">
-          <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-white/5" />
-          <div className="absolute -bottom-12 -right-12 w-64 h-64 rounded-full bg-white/5" />
+        {/* ── Left: IDE dark code-rain panel ── */}
+        <div className="hidden lg:flex w-80 shrink-0 flex-col justify-between p-8 relative overflow-hidden border-r" style={{ background: '#0d1117', borderColor: '#30363d' }}>
+          {/* faded code-rain background */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" style={{ opacity: 0.32 }}>
+            <pre className="font-mono text-[11px] leading-[1.7] p-4 whitespace-pre-wrap" style={{ color: '#3574f0' }}>{`import { classify } from\n  '@unity/skill-engine'\n\nconst profile = await\n  classify({\n    github: repos,\n    meetings: calendar,\n    chats: slack\n  })\n\n// automatically documented\nconst verified = profile\n  .skills\n  .filter(s => s.backed)\n\nreturn verified`}</pre>
+          </div>
 
           {/* brand */}
           <div className="relative z-10">
-            <span className="font-bold text-white text-base tracking-tight">unity_skill</span>
+            <span className="font-bold text-white text-base tracking-tight">
+              unity<span style={{ color: '#8aabff' }}>_</span>skill
+            </span>
           </div>
 
-          {/* headline */}
+          {/* proof block */}
           <div className="relative z-10">
-            <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-3">Proof of Work</p>
-            <h2 className="text-xl font-extrabold text-white leading-snug mb-3">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#3574f0' }}>// proof of work</p>
+            <h2 className="text-[22px] font-extrabold text-white leading-snug mb-3">
               Let your code<br />do the talking.
             </h2>
-            <p className="text-white/70 text-xs leading-relaxed">
+            <p className="text-xs leading-relaxed" style={{ color: '#8b949e' }}>
               Less performing. More shipping. Every PR, review, and meeting — automatically documented.
             </p>
           </div>
 
-          {/* 3 real use cases */}
+          {/* 3 features with lime dots */}
           <div className="relative z-10 space-y-4">
             {[
-              { 
-                icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-                text: 'Auto-tracked from GitHub & Slack'
-              },
-              {
-                icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
-                text: 'Verified, not self-reported'
-              },
-              {
-                icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-                text: 'Share a public portfolio link'
-              },
-            ].map((item, i) => (
+              'Auto-tracked from GitHub & Slack',
+              'Verified, not self-reported',
+              'Share a public portfolio link',
+            ].map((text, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-white/80 shrink-0">{item.icon}</span>
-                <span className="text-white/80 text-sm leading-snug font-medium">{item.text}</span>
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#bef264' }} />
+                <span className="text-sm font-medium" style={{ color: '#c9d1d9' }}>{text}</span>
               </div>
             ))}
           </div>
@@ -167,14 +162,14 @@ export default function RegisterPage() {
         <div className="flex-1 flex flex-col justify-center px-10 py-8 overflow-y-auto">
           {/* mobile logo */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-cobalt-600 flex items-center justify-center">
               <span className="text-white text-xs font-bold">U</span>
             </div>
             <span className="font-bold text-gray-900 text-sm">unity_skill</span>
           </div>
 
           {/* back to home */}
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition mb-5 -mt-1">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-cobalt-600 transition mb-5 -mt-1">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
             Back to home
           </Link>
@@ -182,7 +177,7 @@ export default function RegisterPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Create account</h1>
           <p className="text-sm text-gray-500 mb-5">
             Already have an account?{' '}
-            <Link href="/login" className="text-indigo-600 font-medium hover:underline">Sign in</Link>
+            <Link href="/login" className="text-cobalt-600 font-medium hover:underline">Sign in</Link>
           </p>
 
           {/* OAuth buttons */}
@@ -234,7 +229,7 @@ export default function RegisterPage() {
                 {...register('displayName')}
                 placeholder="How teammates will see you"
                 className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition
+                  focus:outline-none focus:ring-2 focus:ring-cobalt-500 focus:border-transparent transition
                   ${errors.displayName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}
               />
             </Field>
@@ -245,7 +240,7 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="you@company.com"
                 className={`w-full border rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition
+                  focus:outline-none focus:ring-2 focus:ring-cobalt-500 focus:border-transparent transition
                   ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}
               />
             </Field>
@@ -257,7 +252,7 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Min. 8 characters"
                   className={`w-full border rounded-xl px-4 py-2.5 pr-11 text-sm text-gray-900 placeholder-gray-400
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition
+                    focus:outline-none focus:ring-2 focus:ring-cobalt-500 focus:border-transparent transition
                     ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}
                 />
                 <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
@@ -273,7 +268,7 @@ export default function RegisterPage() {
                   type={showConfirm ? 'text' : 'password'}
                   placeholder="Re-enter your password"
                   className={`w-full border rounded-xl px-4 py-2.5 pr-11 text-sm text-gray-900 placeholder-gray-400
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition
+                    focus:outline-none focus:ring-2 focus:ring-cobalt-500 focus:border-transparent transition
                     ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}
                 />
                 <button type="button" onClick={() => setShowConfirm((v) => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
@@ -285,7 +280,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-2.5 rounded-xl font-semibold text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-cobalt-600 hover:bg-cobalt-700 active:bg-cobalt-800 text-white py-2.5 rounded-xl font-semibold text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -42,12 +42,12 @@ function ActivityRow({ activity, isLast }: { activity: TicketActivity; isLast: b
   if (activity.type === 'TICKET_CREATED') {
     icon = <span className="text-emerald-500">✦</span>
     description = (
-      <>created <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span> <span className="text-gray-700">{activity.ticketTitle}</span></>
+      <>created <span className="font-mono text-cobalt-600 text-[10px]">{activity.ticketCode}</span> <span className="text-gray-700">{activity.ticketTitle}</span></>
     )
   } else if (activity.type === 'STAGE_CHANGED') {
     icon = <span className="text-blue-400">→</span>
     description = (
-      <>moved <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span>{' '}
+      <>moved <span className="font-mono text-cobalt-600 text-[10px]">{activity.ticketCode}</span>{' '}
         <span className="text-gray-500 line-through text-[10px]">{activity.fromStageName ?? '?'}</span>
         {' → '}
         <span className="text-gray-800 font-medium text-[11px]">{activity.toStageName ?? '?'}</span>
@@ -55,7 +55,7 @@ function ActivityRow({ activity, isLast }: { activity: TicketActivity; isLast: b
     )
   } else if (activity.type === 'PR_LINKED') {
     icon = <span className="text-violet-500">⎇</span>
-    description = <>linked PR to <span className="font-mono text-indigo-600 text-[10px]">{activity.ticketCode}</span></>
+    description = <>linked PR to <span className="font-mono text-cobalt-600 text-[10px]">{activity.ticketCode}</span></>
   } else {
     icon = <span className="text-gray-400">·</span>
     description = <>{activity.type.toLowerCase().replace('_', ' ')}</>
@@ -70,7 +70,7 @@ function ActivityRow({ activity, isLast }: { activity: TicketActivity; isLast: b
             {icon}
           </div>
         ) : (
-          <div className="w-[30px] h-[30px] rounded-full bg-indigo-500 flex items-center justify-center text-white text-[10px] font-bold">
+          <div className="w-[30px] h-[30px] rounded-full bg-cobalt-500 flex items-center justify-center text-white text-[10px] font-bold">
             {initials}
           </div>
         )}
@@ -106,7 +106,7 @@ function groupTicketsByStage(tickets: Ticket[]): Record<string, Ticket[]> {
 }
 
 const AVATAR_COLORS = [
-  'bg-indigo-500', 'bg-violet-500', 'bg-emerald-500',
+  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
   'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-pink-500',
 ]
 
@@ -559,7 +559,7 @@ export default function KanbanBoardPage() {
           onClick={() => setShowActivity(v => !v)}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition ${
             showActivity
-              ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
+              ? 'bg-cobalt-50 text-cobalt-700 border-cobalt-300'
               : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
           }`}
         >
@@ -604,7 +604,7 @@ export default function KanbanBoardPage() {
           {/* Row 1: overview counts */}
           <div className="flex items-center gap-6 overflow-x-auto">
             <StatChip label="Total" value={totalTickets} color="text-gray-700" />
-            <StatChip label="Open" value={openTickets} color="text-indigo-600" />
+            <StatChip label="Open" value={openTickets} color="text-cobalt-600" />
             <StatChip label="Closed" value={closedTickets} color="text-emerald-600" />
             <StatChip label="With PR" value={withPr} color="text-violet-600" />
             {openPool > 0 && <StatChip label="Open Pool" value={openPool} color="text-orange-500" />}
@@ -623,7 +623,7 @@ export default function KanbanBoardPage() {
                           ? 'bg-red-400'
                           : storageStats.usedBytes / storageStats.limitBytes > 0.7
                           ? 'bg-amber-400'
-                          : 'bg-indigo-400'
+                          : 'bg-cobalt-400'
                       }`}
                       style={{ width: `${Math.min(100, Math.round(storageStats.usedBytes * 100 / storageStats.limitBytes))}%` }}
                     />
@@ -661,7 +661,7 @@ export default function KanbanBoardPage() {
                       {initials}
                     </span>
                     <span className="text-[11px] text-gray-600 max-w-[80px] truncate">{name}</span>
-                    <span className="text-[11px] font-semibold text-indigo-600">{open}</span>
+                    <span className="text-[11px] font-semibold text-cobalt-600">{open}</span>
                     {closed > 0 && (
                       <span className="text-[10px] text-gray-400">+{closed}✓</span>
                     )}
@@ -694,7 +694,7 @@ export default function KanbanBoardPage() {
               {isPmOrAdmin ? (
                 <Link
                   href={`/${workspaceId}/projects/${projectId}/settings`}
-                  className="text-sm text-indigo-600 hover:underline font-medium"
+                  className="text-sm text-cobalt-600 hover:underline font-medium"
                 >
                   Go to Settings to add stages →
                 </Link>
@@ -721,7 +721,7 @@ export default function KanbanBoardPage() {
                         className={`w-2 h-2 rounded-full shrink-0 ${
                           stage.isClosedState
                             ? 'bg-emerald-400'
-                            : 'bg-indigo-400'
+                            : 'bg-cobalt-400'
                         }`}
                       />
                       <span className="font-semibold text-sm text-gray-800 flex-1 truncate">
@@ -741,15 +741,15 @@ export default function KanbanBoardPage() {
                           <div
                             key={ticket.id}
                             onClick={() => openDetail(ticket)}
-                            className={`bg-white rounded-lg border p-3 cursor-pointer hover:border-indigo-300 hover:shadow-sm transition ${
+                            className={`bg-white rounded-lg border p-3 cursor-pointer hover:border-cobalt-300 hover:shadow-sm transition ${
                               isSelected
-                                ? 'border-indigo-400 ring-1 ring-indigo-200 shadow-sm'
+                                ? 'border-cobalt-400 ring-1 ring-cobalt-200 shadow-sm'
                                 : 'border-gray-200'
                             }`}
                           >
                             {/* Top row: ticket code + status badges */}
                             <div className="flex items-center gap-1 mb-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-mono font-semibold text-cobalt-500 bg-cobalt-50 px-1.5 py-0.5 rounded">
                                 {ticket.ticketCode}
                               </span>
                               {ticket.hasPr && (
@@ -825,7 +825,7 @@ export default function KanbanBoardPage() {
 
                       {/* Quick-add card */}
                       {isAdding && (
-                        <div className="bg-white rounded-lg border border-indigo-300 ring-1 ring-indigo-200 p-3 shadow-sm">
+                        <div className="bg-white rounded-lg border border-cobalt-300 ring-1 ring-cobalt-200 p-3 shadow-sm">
                           <input
                             ref={newTitleRef}
                             className="w-full text-sm font-medium text-gray-800 outline-none placeholder-gray-300 mb-2"
@@ -860,7 +860,7 @@ export default function KanbanBoardPage() {
                           />
                           <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
                             <button
-                              className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-md font-medium disabled:opacity-50 hover:bg-indigo-700 transition"
+                              className="px-3 py-1 bg-cobalt-600 text-white text-xs rounded-md font-medium disabled:opacity-50 hover:bg-cobalt-700 transition"
                               disabled={
                                 !newTitle.trim() || createMutation.isPending
                               }
@@ -894,7 +894,7 @@ export default function KanbanBoardPage() {
                             setNewTitle('')
                             setNewDescription('')
                           }}
-                          className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition font-medium"
+                          className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-400 hover:text-cobalt-600 hover:bg-cobalt-50 rounded-lg transition font-medium"
                         >
                           <svg
                             width="12"
@@ -925,7 +925,7 @@ export default function KanbanBoardPage() {
         {showActivity && (
           <div className="w-[320px] shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="text-indigo-500">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="text-cobalt-500">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm font-semibold text-gray-800">Activity</span>
@@ -940,7 +940,7 @@ export default function KanbanBoardPage() {
             <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
               {activitiesLoading ? (
                 <div className="flex items-center justify-center h-20">
-                  <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-cobalt-400 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : activities.length === 0 ? (
                 <p className="text-xs text-gray-400 text-center mt-6">No activity yet.</p>
@@ -967,7 +967,7 @@ export default function KanbanBoardPage() {
               <div className="flex items-center gap-2">
                 {/* Ticket code — copy on click */}
                 <button
-                  className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition"
+                  className="font-mono text-xs font-bold text-cobalt-600 bg-cobalt-50 hover:bg-cobalt-100 px-2 py-0.5 rounded transition"
                   title="Click to copy ticket code"
                   onClick={() => navigator.clipboard.writeText(selectedTicket.ticketCode).then(() => toast.success('Copied!'))}
                 >
@@ -977,7 +977,7 @@ export default function KanbanBoardPage() {
                   className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                     selectedTicket.closedAt
                       ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-indigo-100 text-indigo-700'
+                      : 'bg-cobalt-100 text-cobalt-700'
                   }`}
                 >
                   {selectedTicket.closedAt ? 'Closed' : 'Open'}
@@ -1019,7 +1019,7 @@ export default function KanbanBoardPage() {
                 {editingTitle ? (
                   <input
                     ref={editTitleRef}
-                    className="w-full text-base font-semibold text-gray-900 border border-indigo-300 rounded-lg px-3 py-2 outline-none ring-1 ring-indigo-100"
+                    className="w-full text-base font-semibold text-gray-900 border border-cobalt-300 rounded-lg px-3 py-2 outline-none ring-1 ring-cobalt-100"
                     value={editTitleValue}
                     onChange={(e) => setEditTitleValue(e.target.value)}
                     onBlur={() => handleSaveTitle(selectedTicket)}
@@ -1050,7 +1050,7 @@ export default function KanbanBoardPage() {
                 {editingDescription ? (
                   <div className="mt-1.5">
                     <textarea
-                      className="w-full text-sm text-gray-700 border border-indigo-300 rounded-lg px-3 py-2 outline-none resize-none ring-1 ring-indigo-100 leading-relaxed"
+                      className="w-full text-sm text-gray-700 border border-cobalt-300 rounded-lg px-3 py-2 outline-none resize-none ring-1 ring-cobalt-100 leading-relaxed"
                       rows={5}
                       value={editDescValue}
                       onChange={(e) => setEditDescValue(e.target.value)}
@@ -1063,7 +1063,7 @@ export default function KanbanBoardPage() {
                       <button
                         onClick={() => handleSaveDescription(selectedTicket)}
                         disabled={updateMutation.isPending}
-                        className="text-xs px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                        className="text-xs px-3 py-1 bg-cobalt-600 text-white rounded-md hover:bg-cobalt-700 transition disabled:opacity-50"
                       >
                         Save
                       </button>
@@ -1104,7 +1104,7 @@ export default function KanbanBoardPage() {
                 </label>
                 <div className="mt-1.5 flex gap-2">
                   <select
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200"
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-cobalt-300 focus:ring-1 focus:ring-cobalt-200"
                     value={moveStageValue}
                     onChange={(e) => setMoveStageValue(e.target.value)}
                   >
@@ -1116,7 +1116,7 @@ export default function KanbanBoardPage() {
                     ))}
                   </select>
                   <button
-                    className="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg font-medium disabled:opacity-40 hover:bg-indigo-700 transition"
+                    className="px-3 py-1.5 text-xs bg-cobalt-600 text-white rounded-lg font-medium disabled:opacity-40 hover:bg-cobalt-700 transition"
                     onClick={() => handleMoveStage(selectedTicket)}
                     disabled={
                       !moveStageValue ||
@@ -1164,7 +1164,7 @@ export default function KanbanBoardPage() {
                       {isPmOrAdmin ? (
                         <div className="flex gap-2">
                           <select
-                            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-indigo-300"
+                            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-cobalt-300"
                             value={assigneeValue}
                             onChange={(e) => setAssigneeValue(e.target.value)}
                           >
@@ -1178,7 +1178,7 @@ export default function KanbanBoardPage() {
                             ))}
                           </select>
                           <button
-                            className="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg font-medium disabled:opacity-40 hover:bg-indigo-700 transition"
+                            className="px-3 py-1.5 text-xs bg-cobalt-600 text-white rounded-lg font-medium disabled:opacity-40 hover:bg-cobalt-700 transition"
                             onClick={() => handleAssign(selectedTicket)}
                             disabled={
                               !assigneeValue || updateMutation.isPending
@@ -1293,7 +1293,7 @@ export default function KanbanBoardPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           <a href={att.url} target="_blank" rel="noopener noreferrer"
-                            className="text-xs font-medium text-gray-700 hover:text-indigo-600 truncate block leading-tight">
+                            className="text-xs font-medium text-gray-700 hover:text-cobalt-600 truncate block leading-tight">
                             {att.fileName}
                           </a>
                           <p className="text-[10px] text-gray-400">{formatBytes(att.bytes)}</p>
@@ -1327,10 +1327,10 @@ export default function KanbanBoardPage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-gray-200 rounded-lg text-xs text-gray-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition disabled:opacity-50"
+                  className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-gray-200 rounded-lg text-xs text-gray-400 hover:text-cobalt-600 hover:border-cobalt-300 hover:bg-cobalt-50 transition disabled:opacity-50"
                 >
                   {uploading ? (
-                    <><div className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin" /> Uploading...</>
+                    <><div className="w-3 h-3 border border-cobalt-400 border-t-transparent rounded-full animate-spin" /> Uploading...</>
                   ) : (
                     <><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg> Add image / video</>
                   )}
@@ -1345,7 +1345,7 @@ export default function KanbanBoardPage() {
                 {editingPrUrl ? (
                   <div className="mt-1.5">
                     <input
-                      className="w-full text-sm border border-indigo-300 rounded-lg px-3 py-2 outline-none ring-1 ring-indigo-100"
+                      className="w-full text-sm border border-cobalt-300 rounded-lg px-3 py-2 outline-none ring-1 ring-cobalt-100"
                       placeholder="https://github.com/..."
                       value={editPrUrlValue}
                       onChange={(e) => setEditPrUrlValue(e.target.value)}
@@ -1359,7 +1359,7 @@ export default function KanbanBoardPage() {
                       <button
                         onClick={() => handleSavePrUrl(selectedTicket)}
                         disabled={updateMutation.isPending}
-                        className="text-xs px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                        className="text-xs px-3 py-1 bg-cobalt-600 text-white rounded-md hover:bg-cobalt-700 transition disabled:opacity-50"
                       >
                         Save
                       </button>
@@ -1385,7 +1385,7 @@ export default function KanbanBoardPage() {
                         href={selectedTicket.githubPrUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-indigo-600 hover:underline break-all"
+                        className="text-sm text-cobalt-600 hover:underline break-all"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {selectedTicket.githubPrUrl}
@@ -1465,7 +1465,7 @@ export default function KanbanBoardPage() {
       {showAiChat && (
         <div className="w-[360px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="px-4 py-3 bg-indigo-600 flex items-center gap-2.5 shrink-0">
+          <div className="px-4 py-3 bg-cobalt-600 flex items-center gap-2.5 shrink-0">
             <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -1473,13 +1473,13 @@ export default function KanbanBoardPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-semibold leading-tight">AI Assistant</p>
-              <p className="text-indigo-200 text-[10px]">Hỏi về project của bạn</p>
+              <p className="text-cobalt-200 text-[10px]">Hỏi về project của bạn</p>
             </div>
             <div className="flex items-center gap-1">
               {aiMessages.length > 0 && (
                 <button
                   onClick={() => setAiMessages([])}
-                  className="text-indigo-200 hover:text-white text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition"
+                  className="text-cobalt-200 hover:text-white text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition"
                   title="Clear chat"
                 >
                   Clear
@@ -1487,7 +1487,7 @@ export default function KanbanBoardPage() {
               )}
               <button
                 onClick={() => setShowAiChat(false)}
-                className="text-indigo-200 hover:text-white p-1 rounded hover:bg-white/10 transition"
+                className="text-cobalt-200 hover:text-white p-1 rounded hover:bg-white/10 transition"
               >
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1500,8 +1500,8 @@ export default function KanbanBoardPage() {
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
             {aiMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth={1.5}>
+                <div className="w-12 h-12 rounded-full bg-cobalt-50 flex items-center justify-center mb-3">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3574f0" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
                 </div>
@@ -1516,7 +1516,7 @@ export default function KanbanBoardPage() {
                     <button
                       key={q}
                       onClick={() => setAiInput(q)}
-                      className="w-full text-left text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition"
+                      className="w-full text-left text-xs text-cobalt-600 bg-cobalt-50 hover:bg-cobalt-100 px-3 py-2 rounded-lg transition"
                     >
                       {q}
                     </button>
@@ -1531,13 +1531,13 @@ export default function KanbanBoardPage() {
                     className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                   >
                     <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold ${
-                      msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'
+                      msg.role === 'user' ? 'bg-cobalt-500 text-white' : 'bg-gray-100 text-gray-500'
                     }`}>
                       {msg.role === 'user' ? (currentUser?.displayName?.[0] ?? 'U').toUpperCase() : '✦'}
                     </div>
                     <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
                       msg.role === 'user'
-                        ? 'bg-indigo-600 text-white rounded-tr-sm'
+                        ? 'bg-cobalt-600 text-white rounded-tr-sm'
                         : 'bg-gray-100 text-gray-800 rounded-tl-sm'
                     }`}>
                       {msg.content}
@@ -1561,7 +1561,7 @@ export default function KanbanBoardPage() {
 
           {/* Input */}
           <div className="px-3 py-3 border-t border-gray-100 shrink-0">
-            <div className="flex gap-2 items-end bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus-within:border-indigo-300 focus-within:bg-white transition">
+            <div className="flex gap-2 items-end bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus-within:border-cobalt-300 focus-within:bg-white transition">
               <textarea
                 className="flex-1 text-xs resize-none bg-transparent outline-none text-gray-800 placeholder-gray-400 max-h-[80px]"
                 placeholder="Nhắn tin với AI..."
@@ -1578,7 +1578,7 @@ export default function KanbanBoardPage() {
               <button
                 onClick={handleAiSend}
                 disabled={!aiInput.trim() || aiLoading}
-                className="shrink-0 w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition"
+                className="shrink-0 w-7 h-7 rounded-lg bg-cobalt-600 hover:bg-cobalt-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -1595,7 +1595,7 @@ export default function KanbanBoardPage() {
         onClick={() => setShowAiChat((v) => !v)}
         style={{ width: 52, height: 52 }}
         className={`rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${
-          showAiChat ? 'bg-gray-700 hover:bg-gray-800' : 'bg-indigo-600 hover:bg-indigo-700'
+          showAiChat ? 'bg-gray-700 hover:bg-gray-800' : 'bg-cobalt-600 hover:bg-cobalt-700'
         }`}
         title="AI Assistant"
       >

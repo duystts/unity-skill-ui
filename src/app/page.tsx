@@ -54,7 +54,7 @@ function Nav({ loggedIn }: { loggedIn: boolean }) {
         <div className="flex items-center gap-3">
           {loggedIn ? (
             <>
-              <Link href="/workspaces" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+              <Link href="/workspaces" className="bg-cobalt-600 hover:bg-cobalt-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
                 Go to dashboard →
               </Link>
               <button
@@ -68,7 +68,7 @@ function Nav({ loggedIn }: { loggedIn: boolean }) {
           ) : (
             <>
               <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition">Sign in</Link>
-              <Link href="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+              <Link href="/register" className="bg-cobalt-600 hover:bg-cobalt-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
                 <GithubIcon /> Get started
               </Link>
             </>
@@ -86,25 +86,25 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
       {/* glow */}
       <div
         className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-        style={{ top: 220, width: 800, height: 300, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(99,102,241,0.28), transparent)', filter: 'blur(48px)', zIndex: 0 }}
+        style={{ top: 220, width: 800, height: 300, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(53,116,240,0.28), transparent)', filter: 'blur(48px)', zIndex: 0 }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6">
         {/* eyebrow */}
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full mb-5">
-          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cobalt-600 bg-cobalt-50 border border-cobalt-100 px-3 py-1 rounded-full mb-5">
+          <span className="w-1.5 h-1.5 bg-cobalt-500 rounded-full animate-pulse" />
           Now in public beta
         </span>
 
         {/* headline */}
         <h1 className="text-6xl font-extrabold text-gray-900 leading-[1.05] mb-4 tracking-tight">
           Your work,<br />
-          <span className="text-indigo-600">automatically documented.</span>
+          <span className="text-cobalt-600">automatically documented.</span>
         </h1>
 
         {/* squiggle */}
         <svg width="240" height="10" viewBox="0 0 240 10" className="mx-auto mb-5 opacity-60">
-          <path d="M2 6 Q30 2 60 6 Q90 10 120 6 Q150 2 180 6 Q210 10 238 6" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M2 6 Q30 2 60 6 Q90 10 120 6 Q150 2 180 6 Q210 10 238 6" fill="none" stroke="#3574f0" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
 
         <p className="text-lg text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed">
@@ -113,12 +113,12 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
 
         <div className="flex items-center justify-center gap-3 mb-4">
           {loggedIn ? (
-            <Link href="/workspaces" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-indigo-200">
+            <Link href="/workspaces" className="inline-flex items-center gap-2 bg-cobalt-600 hover:bg-cobalt-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-cobalt-200">
               Go to dashboard <ArrowIcon />
             </Link>
           ) : (
             <>
-              <Link href="/register" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-indigo-200">
+              <Link href="/register" className="inline-flex items-center gap-2 bg-cobalt-600 hover:bg-cobalt-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-cobalt-200">
                 <GithubIcon /> Connect GitHub
               </Link>
               <Link href="/register" className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 hover:border-gray-300 px-6 py-3 rounded-xl font-semibold text-sm transition bg-white">
@@ -139,7 +139,7 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
 
       {/* product mockup — kanban board */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 mt-12">
-        <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-indigo-100/50 overflow-hidden bg-white">
+        <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-cobalt-100/50 overflow-hidden bg-white">
           {/* window chrome */}
           <div className="bg-gray-100 border-b border-gray-200 flex items-center gap-1.5 px-4 py-2.5">
             <span className="w-3 h-3 rounded-full bg-red-400" />
@@ -153,7 +153,7 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
             <div className="bg-slate-900 flex flex-col h-full">
               <div className="px-3 pt-3 pb-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Workspace</div>
               <div className="mx-2 mb-2 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-800">
-                <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">US</div>
+                <div className="w-5 h-5 rounded bg-cobalt-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">US</div>
                 <span className="text-xs text-slate-300 truncate">unity_skill</span>
               </div>
               <div className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Menu</div>
@@ -168,7 +168,7 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
                 </div>
               ))}
               <div className="mt-auto border-t border-slate-800 p-3 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">M</div>
+                <div className="w-6 h-6 rounded-full bg-cobalt-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">M</div>
                 <span className="text-xs text-slate-300 truncate">Minh Nguyen</span>
               </div>
             </div>
@@ -212,7 +212,7 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
                     <span className="ml-auto text-xs text-gray-400">3</span>
                   </div>
                   {[
-                    { title: 'GitHub webhook for PR tracking', avatar: 'M', color: 'bg-indigo-500' },
+                    { title: 'GitHub webhook for PR tracking', avatar: 'M', color: 'bg-cobalt-500' },
                     { title: 'Skill auto-extraction from commits', avatar: 'A', color: 'bg-pink-500' },
                     { title: 'Refactor workspace settings', avatar: 'H', color: 'bg-amber-500' },
                   ].map((t) => (
@@ -231,7 +231,7 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
                     <span className="ml-auto text-xs text-gray-400">3</span>
                   </div>
                   {[
-                    { title: 'JWT refresh token rotation', avatar: 'M', color: 'bg-indigo-500' },
+                    { title: 'JWT refresh token rotation', avatar: 'M', color: 'bg-cobalt-500' },
                     { title: 'Kanban drag-and-drop board', avatar: 'A', color: 'bg-pink-500' },
                     { title: 'Meeting transcript upload', avatar: 'H', color: 'bg-amber-500' },
                   ].map((t) => (
@@ -275,7 +275,7 @@ const FEATURES = [
               <GithubIcon />
               <span className="flex-1 font-mono text-xs text-gray-700 truncate">{title}</span>
               {meta && <span className="text-xs text-gray-400 shrink-0">{meta}</span>}
-              <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full shrink-0">{skill}</span>
+              <span className="text-xs bg-cobalt-50 text-cobalt-700 px-2 py-0.5 rounded-full shrink-0">{skill}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${status === 'merged' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{status}</span>
             </div>
           ))}
@@ -304,7 +304,7 @@ const FEATURES = [
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${Math.min((load as number), 1) * 100}%`, background: (load as number) > 1 ? '#ef4444' : '#6366f1' }}
+                    style={{ width: `${Math.min((load as number), 1) * 100}%`, background: (load as number) > 1 ? '#ef4444' : '#3574f0' }}
                   />
                 </div>
                 <div className="flex items-center justify-end gap-1.5">
@@ -365,12 +365,12 @@ function Features() {
     <section id="features" className="py-20 bg-slate-50">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Features</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Features</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 mb-3 tracking-tight">
             Built for teams that ship,<br />not teams that report.
           </h2>
           <svg width="180" height="10" viewBox="0 0 180 10" className="mx-auto opacity-50">
-            <path d="M2 6 Q22 2 45 6 Q68 10 90 6 Q112 2 135 6 Q158 10 178 6" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" />
+            <path d="M2 6 Q22 2 45 6 Q68 10 90 6 Q112 2 135 6 Q158 10 178 6" fill="none" stroke="#3574f0" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
 
@@ -381,10 +381,10 @@ function Features() {
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 items-center ${i % 2 === 1 ? 'md:[direction:rtl]' : ''}`}
             >
               <div className={i % 2 === 1 ? 'md:[direction:ltr]' : ''}>
-                <span className="text-xs font-semibold text-indigo-400 tracking-widest">{feat.num}</span>
+                <span className="text-xs font-semibold text-cobalt-300 tracking-widest">{feat.num}</span>
                 <h3 className="text-2xl font-bold text-gray-900 mt-1 mb-3 tracking-tight">{feat.title}</h3>
                 <p className="text-gray-500 leading-relaxed mb-4">{feat.body}</p>
-                <a href="#" className="inline-flex items-center gap-1 text-sm text-indigo-600 font-medium hover:underline">
+                <a href="#" className="inline-flex items-center gap-1 text-sm text-cobalt-600 font-medium hover:underline">
                   Learn more <ArrowIcon />
                 </a>
               </div>
@@ -416,7 +416,7 @@ function Pricing() {
     <section id="pricing" className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Pricing</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Pricing</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 tracking-tight">Start free. Scale when you're ready.</h2>
         </div>
 
@@ -450,21 +450,21 @@ function Pricing() {
             ))}
           </div>
 
-          {/* Team */}
-          <div className="border-2 border-indigo-600 rounded-2xl p-6 bg-indigo-600 text-white relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest">
+          {/* Team — featured tier with gradient per design system */}
+          <div className="rounded-2xl p-6 text-white relative overflow-hidden" style={{ background: 'linear-gradient(140deg, #2454d6 0%, #7c3aed 45%, #db2777 100%)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest" style={{ boxShadow: '0 2px 8px rgba(124,58,237,0.3)' }}>
               Most popular
             </div>
-            <p className="text-sm text-indigo-200 font-medium mb-1">Team</p>
+            <p className="text-sm text-white/70 font-medium mb-1">Team</p>
             <div className="flex items-baseline gap-1 mb-5">
               <span className="text-5xl font-extrabold">$8</span>
-              <span className="text-sm text-indigo-300">/ user / mo</span>
+              <span className="text-sm text-white/60">/ user / mo</span>
             </div>
-            <Link href="/register" className="block text-center bg-white text-indigo-700 hover:bg-indigo-50 py-2 rounded-xl text-sm font-medium transition mb-4">
+            <Link href="/register" className="block text-center bg-white text-cobalt-700 hover:bg-cobalt-50 py-2 rounded-xl text-sm font-medium transition mb-4">
               Start free trial
             </Link>
             {[true, true, true, true, true, true, true, true].map((inc, i) => (
-              <div key={i} className="h-10 flex items-center border-t border-indigo-500/30">
+              <div key={i} className="h-10 flex items-center border-t border-white/20">
                 <CheckIcon size={16} />
               </div>
             ))}
@@ -486,7 +486,7 @@ function Integrations() {
     <section id="integrations" className="py-20 bg-slate-50">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Integration</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Integration</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 tracking-tight">
             Built on top of where<br />your work already lives.
           </h2>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -99,7 +99,7 @@ function CreateMeetingModal({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
         {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-8 h-8 rounded-xl bg-cobalt-50 flex items-center justify-center text-cobalt-600">
             <IconCalendar />
           </div>
           <h2 className="text-base font-bold text-gray-900">Schedule Meeting</h2>
@@ -124,7 +124,7 @@ function CreateMeetingModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Sprint 3 Planning"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
           </div>
           <div>
@@ -135,7 +135,7 @@ function CreateMeetingModal({
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
           </div>
           <div>
@@ -146,7 +146,7 @@ function CreateMeetingModal({
               value={meetingUrl}
               onChange={(e) => setMeetingUrl(e.target.value)}
               placeholder="https://meet.google.com/xxx  or  zoom.us/j/..."
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
             <p className="text-[11px] text-gray-400 mt-1">Google Meet, Zoom, Teams, … paste bất kỳ link nào</p>
           </div>
@@ -163,7 +163,7 @@ function CreateMeetingModal({
           <button
             onClick={() => createMutation.mutate()}
             disabled={!valid || createMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-white bg-cobalt-600 rounded-xl hover:bg-cobalt-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {createMutation.isPending ? 'Scheduling…' : 'Schedule'}
           </button>
@@ -223,7 +223,7 @@ function EditMeetingModal({
               autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
           </div>
           <div>
@@ -232,7 +232,7 @@ function EditMeetingModal({
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
           </div>
           <div>
@@ -243,7 +243,7 @@ function EditMeetingModal({
               value={meetingUrl}
               onChange={(e) => setMeetingUrl(e.target.value)}
               placeholder="https://meet.google.com/xxx  or  zoom.us/j/..."
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cobalt-100 focus:border-cobalt-300 transition"
             />
           </div>
         </div>
@@ -254,7 +254,7 @@ function EditMeetingModal({
           <button
             onClick={() => updateMutation.mutate()}
             disabled={!title.trim() || updateMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition disabled:opacity-40"
+            className="px-4 py-2 text-sm font-medium text-white bg-cobalt-600 rounded-xl hover:bg-cobalt-700 transition disabled:opacity-40"
           >
             {updateMutation.isPending ? 'Saving…' : 'Save'}
           </button>
@@ -359,7 +359,7 @@ function MeetingCard({
           <div className={`mt-0.5 w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
             isCompleted ? 'bg-emerald-50 text-emerald-600' :
             isPast      ? 'bg-amber-50 text-amber-500'     :
-                          'bg-indigo-50 text-indigo-600'
+                          'bg-cobalt-50 text-cobalt-600'
           }`}>
             {isCompleted ? <IconCheck /> : <IconClock />}
           </div>
@@ -370,7 +370,7 @@ function MeetingCard({
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
                 isCompleted ? 'bg-emerald-100 text-emerald-700' :
                 isPast      ? 'bg-amber-100 text-amber-700'     :
-                              'bg-indigo-100 text-indigo-700'
+                              'bg-cobalt-100 text-cobalt-700'
               }`}>
                 {isCompleted ? 'Completed' : isPast ? 'Past' : 'Scheduled'}
               </span>
@@ -547,7 +547,7 @@ function MeetingCard({
                 <ul className="space-y-1.5">
                   {actionItems.map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
-                      <span className="mt-0.5 w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 font-bold text-[9px]">
+                      <span className="mt-0.5 w-4 h-4 rounded-full bg-cobalt-100 text-cobalt-600 flex items-center justify-center shrink-0 font-bold text-[9px]">
                         {i + 1}
                       </span>
                       {item}
@@ -628,7 +628,7 @@ export default function MeetingsPage() {
             </svg>
           </button>
 
-          <div className="w-7 h-7 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+          <div className="w-7 h-7 rounded-xl bg-cobalt-50 flex items-center justify-center text-cobalt-600 shrink-0">
             <IconCalendar />
           </div>
 
@@ -636,7 +636,7 @@ export default function MeetingsPage() {
 
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-cobalt-600 rounded-lg hover:bg-cobalt-700 transition"
           >
             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -657,14 +657,14 @@ export default function MeetingsPage() {
               onClick={() => setFilter(key)}
               className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition flex items-center gap-1.5 ${
                 filter === key
-                  ? 'border-indigo-600 text-indigo-700 bg-white'
+                  ? 'border-cobalt-600 text-cobalt-700 bg-white'
                   : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
               {label}
               {count > 0 && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                  filter === key ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-400'
+                  filter === key ? 'bg-cobalt-100 text-cobalt-700' : 'bg-gray-100 text-gray-400'
                 }`}>
                   {count}
                 </span>
@@ -677,11 +677,11 @@ export default function MeetingsPage() {
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-5 h-5 border-2 border-indigo-300 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-cobalt-300 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : meetings.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-56 gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-300">
+              <div className="w-14 h-14 rounded-2xl bg-cobalt-50 flex items-center justify-center text-cobalt-300">
                 <IconCalendar />
               </div>
               <p className="text-sm text-gray-400 font-medium">
@@ -692,7 +692,7 @@ export default function MeetingsPage() {
               {filter === 'all' && (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+                  className="text-xs text-cobalt-600 hover:text-cobalt-700 font-medium hover:underline"
                 >
                   + Schedule your first meeting
                 </button>
