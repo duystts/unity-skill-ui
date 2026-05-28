@@ -11,7 +11,7 @@ import axios from 'axios'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
-import type { Ticket, TicketActivity, TicketAttachment, StorageStats, WorkflowStage, WorkspaceMember } from '@/types'
+import type { Ticket, TicketActivity, TicketAttachment, StorageStats, WorkflowStage, WorkspaceMember, AiChatTurn } from '@/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -153,6 +153,13 @@ export default function KanbanBoardPage() {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // AI assistant chat state
+  const [showAiChat, setShowAiChat] = useState(false)
+  const [aiMessages, setAiMessages] = useState<AiChatTurn[]>([])
+  const [aiInput, setAiInput] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const aiMessagesEndRef = useRef<HTMLDivElement>(null)
+
   const newTitleRef = useRef<HTMLInputElement>(null)
   const editTitleRef = useRef<HTMLInputElement>(null)
   const stompRef = useRef<Client | null>(null)
@@ -235,6 +242,34 @@ export default function KanbanBoardPage() {
       toast.error(err?.response?.data?.message ?? 'Upload failed')
     } finally {
       setUploading(false)
+    }
+  }
+
+  // Auto-scroll AI chat to bottom
+  useEffect(() => {
+    if (showAiChat) aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [aiMessages, showAiChat])
+
+  const handleAiSend = async () => {
+    const text = aiInput.trim()
+    if (!text || aiLoading) return
+
+    const userTurn: AiChatTurn = { role: 'user', content: text }
+    const nextMessages = [...aiMessages, userTurn]
+    setAiMessages(nextMessages)
+    setAiInput('')
+    setAiLoading(true)
+
+    try {
+      const res = await apiClient.post<{ data: { reply: string } }>(
+        `/workspaces/${workspaceId}/projects/${projectId}/ai/chat`,
+        { message: text, history: aiMessages }
+      )
+      setAiMessages([...nextMessages, { role: 'assistant', content: res.data.data.reply }])
+    } catch {
+      setAiMessages([...nextMessages, { role: 'assistant', content: '⚠️ Không thể kết nối AI. Vui lòng thử lại.' }])
+    } finally {
+      setAiLoading(false)
     }
   }
 
@@ -470,6 +505,7 @@ export default function KanbanBoardPage() {
 
   // ── Render ─────────────────────────────────────────────────
   return (
+    <>
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Top bar ── */}
       <div className="px-6 py-3 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
@@ -1422,5 +1458,158 @@ export default function KanbanBoardPage() {
         )}
       </div>
     </div>
+
+    {/* ── AI Assistant floating widget ────────────────────────────────────── */}
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      {/* Chat panel */}
+      {showAiChat && (
+        <div className="w-[360px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="px-4 py-3 bg-indigo-600 flex items-center gap-2.5 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-semibold leading-tight">AI Assistant</p>
+              <p className="text-indigo-200 text-[10px]">Hỏi về project của bạn</p>
+            </div>
+            <div className="flex items-center gap-1">
+              {aiMessages.length > 0 && (
+                <button
+                  onClick={() => setAiMessages([])}
+                  className="text-indigo-200 hover:text-white text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition"
+                  title="Clear chat"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                onClick={() => setShowAiChat(false)}
+                className="text-indigo-200 hover:text-white p-1 rounded hover:bg-white/10 transition"
+              >
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
+            {aiMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Xin chào! Tôi là AI Assistant</p>
+                <p className="text-xs text-gray-400 leading-relaxed">Hỏi tôi bất cứ điều gì về project này — tiến độ, tickets, stages, hay cần gợi ý gì đó.</p>
+                <div className="mt-4 space-y-1.5 w-full">
+                  {[
+                    'Hiện tại project có bao nhiêu ticket?',
+                    'Stage nào đang có nhiều ticket nhất?',
+                    'Tóm tắt tình trạng project cho tôi',
+                  ].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setAiInput(q)}
+                      className="w-full text-left text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {aiMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  >
+                    <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {msg.role === 'user' ? (currentUser?.displayName?.[0] ?? 'U').toUpperCase() : '✦'}
+                    </div>
+                    <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
+                      msg.role === 'user'
+                        ? 'bg-indigo-600 text-white rounded-tr-sm'
+                        : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {aiLoading && (
+                  <div className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[9px] shrink-0">✦</div>
+                    <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-3 py-2.5 flex gap-1 items-center">
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                    </div>
+                  </div>
+                )}
+                <div ref={aiMessagesEndRef} />
+              </>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="px-3 py-3 border-t border-gray-100 shrink-0">
+            <div className="flex gap-2 items-end bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus-within:border-indigo-300 focus-within:bg-white transition">
+              <textarea
+                className="flex-1 text-xs resize-none bg-transparent outline-none text-gray-800 placeholder-gray-400 max-h-[80px]"
+                placeholder="Nhắn tin với AI..."
+                rows={1}
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleAiSend()
+                  }
+                }}
+              />
+              <button
+                onClick={handleAiSend}
+                disabled={!aiInput.trim() || aiLoading}
+                className="shrink-0 w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-[9px] text-gray-300 text-center mt-1.5">Enter để gửi · Shift+Enter xuống dòng</p>
+          </div>
+        </div>
+      )}
+
+      {/* Toggle button */}
+      <button
+        onClick={() => setShowAiChat((v) => !v)}
+        style={{ width: 52, height: 52 }}
+        className={`rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${
+          showAiChat ? 'bg-gray-700 hover:bg-gray-800' : 'bg-indigo-600 hover:bg-indigo-700'
+        }`}
+        title="AI Assistant"
+      >
+        {showAiChat ? (
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+          </svg>
+        )}
+      </button>
+    </div>
+    </>
   )
 }
