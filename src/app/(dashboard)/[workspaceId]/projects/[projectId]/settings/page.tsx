@@ -116,7 +116,7 @@ const COLOR_MAP: Record<string, { card: string; badge: string; btn: string }> = 
 
 const stageSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
-  position: z.number({ invalid_type_error: 'Position is required' }).int().min(0),
+  position: z.coerce.number().int().min(0, 'Position must be a non-negative integer'),
   isClosedState: z.boolean(),
 })
 
