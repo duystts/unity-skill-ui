@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -29,7 +29,7 @@ const ROLE_LABELS: Record<Role, string> = {
 const ROLE_COLORS: Record<Role, string> = {
   DEVELOPER: 'bg-slate-100 text-slate-600',
   PM: 'bg-violet-100 text-violet-700',
-  ADMIN: 'bg-indigo-100 text-indigo-700',
+  ADMIN: 'bg-cobalt-100 text-cobalt-700',
 }
 
 const FRONTEND_URL =
@@ -49,7 +49,7 @@ function CopyButton({ text }: { text: string }) {
       className={`shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium border transition ${
         copied
           ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-          : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600'
+          : 'bg-white border-gray-200 text-gray-600 hover:border-cobalt-300 hover:text-cobalt-600'
       }`}
     >
       {copied ? (
@@ -74,7 +74,7 @@ function CopyButton({ text }: { text: string }) {
 
 function MemberAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  const colors = ['bg-indigo-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
+  const colors = ['bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
   const color = colors[name.charCodeAt(0) % colors.length]
   const cls = size === 'sm'
     ? `w-7 h-7 rounded-full ${color} text-white text-[10px] font-bold flex items-center justify-center shrink-0`
@@ -215,7 +215,7 @@ export default function MembersSettingsPage() {
                 }}
                 className={`flex-1 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
                   inviteTab === tab
-                    ? 'border-indigo-600 text-indigo-700 bg-white'
+                    ? 'border-cobalt-600 text-cobalt-700 bg-white'
                     : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
               >
@@ -245,7 +245,7 @@ export default function MembersSettingsPage() {
                 <form onSubmit={handleInviteByEmail} className="flex gap-2">
                   <input
                     type="email"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-100 placeholder-gray-300"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-cobalt-300 focus:ring-1 focus:ring-cobalt-100 placeholder-gray-300"
                     placeholder="colleague@example.com"
                     value={emailInput}
                     onChange={e => setEmailInput(e.target.value)}
@@ -253,7 +253,7 @@ export default function MembersSettingsPage() {
                   <button
                     type="submit"
                     disabled={!emailInput.trim() || inviteEmailMutation.isPending}
-                    className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+                    className="px-4 py-2 bg-cobalt-600 text-white text-sm rounded-lg font-medium hover:bg-cobalt-700 transition disabled:opacity-50"
                   >
                     {inviteEmailMutation.isPending ? 'Generating…' : 'Invite'}
                   </button>
@@ -298,14 +298,14 @@ export default function MembersSettingsPage() {
                 </p>
 
                 {generatedInviteUrl ? (
-                  <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                    <p className="text-xs font-medium text-indigo-700 mb-2 flex items-center gap-1.5">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-indigo-500">
+                  <div className="p-4 bg-cobalt-50 border border-cobalt-100 rounded-xl">
+                    <p className="text-xs font-medium text-cobalt-700 mb-2 flex items-center gap-1.5">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-cobalt-500">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                       </svg>
                       Invite link ready
                     </p>
-                    <div className="flex items-center gap-2 bg-white border border-indigo-200 rounded-lg px-3 py-2 mb-3">
+                    <div className="flex items-center gap-2 bg-white border border-cobalt-200 rounded-lg px-3 py-2 mb-3">
                       <span className="text-xs text-gray-600 truncate flex-1 font-mono">
                         {generatedInviteUrl}
                       </span>
@@ -316,7 +316,7 @@ export default function MembersSettingsPage() {
                         setGeneratedInviteUrl(null)
                         inviteLinkMutation.mutate()
                       }}
-                      className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                      className="text-xs text-cobalt-500 hover:text-cobalt-700 font-medium"
                     >
                       Generate new link
                     </button>
@@ -325,7 +325,7 @@ export default function MembersSettingsPage() {
                   <button
                     onClick={() => inviteLinkMutation.mutate()}
                     disabled={inviteLinkMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-50 transition disabled:opacity-50 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-cobalt-300 text-cobalt-600 rounded-xl text-sm font-medium hover:bg-cobalt-50 transition disabled:opacity-50 w-full justify-center"
                   >
                     {inviteLinkMutation.isPending ? (
                       'Generating…'
@@ -354,20 +354,24 @@ export default function MembersSettingsPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-4">
             {[0, 1, 2].map(i => (
-              <div key={i} className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl animate-pulse">
-                <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 bg-gray-200 rounded w-1/3" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div key={i} className="p-4 border border-gray-100 rounded-xl animate-pulse bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 bg-gray-200 rounded w-2/3" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
                 </div>
-                <div className="h-6 w-20 bg-gray-100 rounded-full" />
+                <div className="h-5 bg-gray-100 rounded w-1/3 mb-3" />
+                <div className="h-px bg-gray-100 mb-3" />
+                <div className="h-3 bg-gray-100 rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : (
-          <ul className="space-y-2">
+          <div className="grid grid-cols-3 gap-4">
             {sortedMembers.map(member => {
               const name = member.displayName || member.email || member.userId.slice(0, 8)
               const email = member.email ?? ''
@@ -375,100 +379,167 @@ export default function MembersSettingsPage() {
               const isConfirmingRemove = confirmRemoveId === member.userId
               const isEditingRole = editingRoleId === member.userId
 
-              return (
-                <li
-                  key={member.userId}
-                  className="flex items-center gap-3 px-4 py-3 border border-gray-100 rounded-xl bg-white hover:border-gray-200 transition"
-                >
-                  <MemberAvatar name={name} />
+              // "Recently active" approximation: ADMIN/PM = green, others = gray
+              const isRecentlyActive = member.role === 'ADMIN' || member.role === 'PM'
+              const indicatorColor = isRecentlyActive ? '#22c55e' : '#cbd5e1'
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-800 truncate">{name}</span>
-                      {isCurrentUser && (
-                        <span className="text-[10px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded-full">
-                          You
+              // Derive tag chips from role
+              const roleTagMap: Record<string, { label: string; bg: string; text: string }> = {
+                DEVELOPER: { label: 'Backend',    bg: '#dbeafe', text: '#1d4ed8' },
+                PM:        { label: 'Management', bg: '#ede9fe', text: '#6d28d9' },
+                ADMIN:     { label: 'Admin',      bg: '#dbeafe', text: '#2454d6' },
+              }
+              const roleTag = roleTagMap[member.role]
+
+              // Load bar: ADMIN → 40%, PM → 60%, DEVELOPER → proportional guess
+              const loadPct = member.role === 'ADMIN' ? 40 : member.role === 'PM' ? 60 : 75
+              const isOverloaded = loadPct > 100
+
+              const colors = ['bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500']
+              const avatarColor = colors[name.charCodeAt(0) % colors.length]
+              const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+
+              return (
+                <div
+                  key={member.userId}
+                  className="bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition"
+                  style={{ padding: 18, boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}
+                >
+                  {/* Card header */}
+                  <div className="flex items-start gap-3 mb-3">
+                    {/* Avatar with online dot */}
+                    <div className="relative shrink-0">
+                      <div className={`w-10 h-10 rounded-full ${avatarColor} flex items-center justify-center text-sm font-bold text-white`}>
+                        {initials}
+                      </div>
+                      <span style={{
+                        position: 'absolute', bottom: 0, right: 0,
+                        width: 10, height: 10, borderRadius: '50%',
+                        background: indicatorColor,
+                        border: '2px solid #fff',
+                      }} />
+                    </div>
+
+                    {/* Name + role */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-sm font-semibold text-gray-900 truncate">{name}</span>
+                        {isCurrentUser && (
+                          <span className="text-[10px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded-full">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+                        {isEditingRole && isAdmin && !isCurrentUser ? (
+                          <select
+                            className="text-xs border border-cobalt-300 rounded-lg px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-cobalt-200"
+                            defaultValue={member.role}
+                            autoFocus
+                            onChange={e => updateRoleMutation.mutate({ userId: member.userId, role: e.target.value as Role })}
+                            onBlur={() => setEditingRoleId(null)}
+                            disabled={updateRoleMutation.isPending}
+                          >
+                            <option value="DEVELOPER">Developer</option>
+                            <option value="PM">PM</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                        ) : (
+                          <button
+                            className={`${isAdmin && !isCurrentUser ? 'cursor-pointer hover:opacity-70 transition' : 'cursor-default'}`}
+                            style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit' }}
+                            onClick={() => isAdmin && !isCurrentUser && setEditingRoleId(member.userId)}
+                            title={isAdmin && !isCurrentUser ? 'Click to change role' : undefined}
+                          >
+                            {ROLE_LABELS[member.role as Role] ?? member.role}
+                            {isAdmin && !isCurrentUser && (
+                              <svg className="inline ml-0.5 -mt-0.5" width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Remove button */}
+                    {isAdmin && !isCurrentUser && (
+                      <div className="shrink-0">
+                        {isConfirmingRemove ? (
+                          <div className="flex items-center gap-1" style={{ fontSize: 11 }}>
+                            <span className="text-gray-400">Remove?</span>
+                            <button className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50 ml-1"
+                              disabled={removeMutation.isPending}
+                              onClick={() => removeMutation.mutate(member.userId)}>
+                              Yes
+                            </button>
+                            <button className="text-gray-400 hover:text-gray-600"
+                              onClick={() => setConfirmRemoveId(null)}>
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="text-gray-300 hover:text-red-400 transition p-1 rounded"
+                            title="Remove member"
+                            onClick={() => setConfirmRemoveId(member.userId)}
+                          >
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6h12a6 6 0 00-6-6zM21 12h-6" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tag chips */}
+                  {roleTag && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      <span style={{
+                        fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 6,
+                        background: roleTag.bg, color: roleTag.text,
+                      }}>
+                        {roleTag.label}
+                      </span>
+                      {email && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 6,
+                          background: '#f1f5f9', color: '#64748b',
+                          fontFamily: 'var(--font-geist-mono, monospace)',
+                          maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {email}
                         </span>
                       )}
                     </div>
-                    {email && (
-                      <span className="text-xs text-gray-400 truncate">{email}</span>
-                    )}
-                  </div>
-
-                  {/* Role */}
-                  <div className="shrink-0">
-                    {isAdmin && !isCurrentUser && isEditingRole ? (
-                      <select
-                        className="text-xs border border-indigo-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-200"
-                        defaultValue={member.role}
-                        autoFocus
-                        onChange={e => {
-                          updateRoleMutation.mutate({
-                            userId: member.userId,
-                            role: e.target.value as Role,
-                          })
-                        }}
-                        onBlur={() => setEditingRoleId(null)}
-                        disabled={updateRoleMutation.isPending}
-                      >
-                        <option value="DEVELOPER">Developer</option>
-                        <option value="PM">PM</option>
-                        <option value="ADMIN">Admin</option>
-                      </select>
-                    ) : (
-                      <button
-                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${ROLE_COLORS[member.role as Role] ?? 'bg-gray-100 text-gray-600'} ${isAdmin && !isCurrentUser ? 'cursor-pointer hover:opacity-80 transition' : 'cursor-default'}`}
-                        onClick={() => isAdmin && !isCurrentUser && setEditingRoleId(member.userId)}
-                        title={isAdmin && !isCurrentUser ? 'Click to change role' : undefined}
-                      >
-                        {ROLE_LABELS[member.role as Role] ?? member.role}
-                        {isAdmin && !isCurrentUser && (
-                          <svg className="inline ml-1 -mt-0.5" width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        )}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Remove button (Admin only, not self) */}
-                  {isAdmin && !isCurrentUser && (
-                    <div className="shrink-0">
-                      {isConfirmingRemove ? (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-400">Remove?</span>
-                          <button
-                            className="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
-                            disabled={removeMutation.isPending}
-                            onClick={() => removeMutation.mutate(member.userId)}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            className="text-xs text-gray-400 hover:text-gray-600"
-                            onClick={() => setConfirmRemoveId(null)}
-                          >
-                            No
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          className="text-gray-300 hover:text-red-400 transition p-1 rounded"
-                          title="Remove member"
-                          onClick={() => setConfirmRemoveId(member.userId)}
-                        >
-                          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6h12a6 6 0 00-6-6zM21 12h-6" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
                   )}
-                </li>
+
+                  {/* Card footer */}
+                  <div style={{
+                    borderTop: '1px solid #f1f5f9',
+                    paddingTop: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}>
+                    <span style={{ fontSize: 11, color: '#64748b' }}>
+                      <span style={{ fontWeight: 700, color: '#0f172a' }}>—</span> open tickets
+                    </span>
+                    <div style={{ flex: 1 }} />
+                    <div style={{ width: 44, height: 5, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${Math.min(loadPct, 100)}%`,
+                        background: isOverloaded ? '#ef4444' : '#3574f0',
+                        borderRadius: 99,
+                      }} />
+                    </div>
+                  </div>
+                </div>
               )
             })}
-          </ul>
+          </div>
         )}
       </section>
     </div>

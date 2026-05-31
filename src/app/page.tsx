@@ -54,7 +54,7 @@ function Nav({ loggedIn }: { loggedIn: boolean }) {
         <div className="flex items-center gap-3">
           {loggedIn ? (
             <>
-              <Link href="/workspaces" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+              <Link href="/workspaces" className="bg-cobalt-600 hover:bg-cobalt-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
                 Go to dashboard →
               </Link>
               <button
@@ -68,7 +68,7 @@ function Nav({ loggedIn }: { loggedIn: boolean }) {
           ) : (
             <>
               <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition">Sign in</Link>
-              <Link href="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+              <Link href="/register" className="bg-cobalt-600 hover:bg-cobalt-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
                 <GithubIcon /> Get started
               </Link>
             </>
@@ -86,25 +86,25 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
       {/* glow */}
       <div
         className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-        style={{ top: 220, width: 800, height: 300, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(99,102,241,0.28), transparent)', filter: 'blur(48px)', zIndex: 0 }}
+        style={{ top: 220, width: 800, height: 300, borderRadius: '50%', background: 'radial-gradient(closest-side, rgba(53,116,240,0.28), transparent)', filter: 'blur(48px)', zIndex: 0 }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6">
         {/* eyebrow */}
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full mb-5">
-          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cobalt-600 bg-cobalt-50 border border-cobalt-100 px-3 py-1 rounded-full mb-5">
+          <span className="w-1.5 h-1.5 bg-cobalt-500 rounded-full animate-pulse" />
           Now in public beta
         </span>
 
         {/* headline */}
         <h1 className="text-6xl font-extrabold text-gray-900 leading-[1.05] mb-4 tracking-tight">
           Your work,<br />
-          <span className="text-indigo-600">automatically documented.</span>
+          <span className="text-cobalt-600">automatically documented.</span>
         </h1>
 
         {/* squiggle */}
         <svg width="240" height="10" viewBox="0 0 240 10" className="mx-auto mb-5 opacity-60">
-          <path d="M2 6 Q30 2 60 6 Q90 10 120 6 Q150 2 180 6 Q210 10 238 6" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M2 6 Q30 2 60 6 Q90 10 120 6 Q150 2 180 6 Q210 10 238 6" fill="none" stroke="#3574f0" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
 
         <p className="text-lg text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed">
@@ -113,12 +113,12 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
 
         <div className="flex items-center justify-center gap-3 mb-4">
           {loggedIn ? (
-            <Link href="/workspaces" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-indigo-200">
+            <Link href="/workspaces" className="inline-flex items-center gap-2 bg-cobalt-600 hover:bg-cobalt-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-cobalt-200">
               Go to dashboard <ArrowIcon />
             </Link>
           ) : (
             <>
-              <Link href="/register" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-indigo-200">
+              <Link href="/register" className="inline-flex items-center gap-2 bg-cobalt-600 hover:bg-cobalt-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition shadow-sm shadow-cobalt-200">
                 <GithubIcon /> Connect GitHub
               </Link>
               <Link href="/register" className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 hover:border-gray-300 px-6 py-3 rounded-xl font-semibold text-sm transition bg-white">
@@ -137,88 +137,113 @@ function Hero({ loggedIn }: { loggedIn: boolean }) {
         </div>
       </div>
 
-      {/* product mockup */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 mt-12">
-        <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-indigo-100/50 overflow-hidden bg-white">
+      {/* product mockup — kanban board */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 mt-12">
+        <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-cobalt-100/50 overflow-hidden bg-white">
           {/* window chrome */}
           <div className="bg-gray-100 border-b border-gray-200 flex items-center gap-1.5 px-4 py-2.5">
             <span className="w-3 h-3 rounded-full bg-red-400" />
             <span className="w-3 h-3 rounded-full bg-yellow-400" />
             <span className="w-3 h-3 rounded-full bg-green-400" />
-            <span className="ml-3 text-xs text-gray-400 font-mono">unity-skill.dev/u/minh-nguyen</span>
+            <span className="ml-3 text-xs text-gray-400 font-mono">unity-skill.dev / workspace / kanban</span>
           </div>
-          {/* app interior */}
-          <div className="grid grid-cols-[200px_1fr] h-[420px]">
-            {/* sidebar */}
-            <div className="border-r border-gray-100 bg-gray-50 p-4 flex flex-col gap-1">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Profile</p>
-              {['Overview', 'Skills', 'Projects', 'Activity', 'Reviews'].map((s, i) => (
-                <div key={s} className={`text-sm px-3 py-1.5 rounded-lg cursor-pointer ${i === 0 ? 'bg-indigo-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100'}`}>
-                  {s}
+
+          <div className="grid grid-cols-[180px_1fr] h-[400px]">
+            {/* sidebar — dark, matches real app */}
+            <div className="bg-slate-900 flex flex-col h-full">
+              <div className="px-3 pt-3 pb-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Workspace</div>
+              <div className="mx-2 mb-2 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-800">
+                <div className="w-5 h-5 rounded bg-cobalt-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">US</div>
+                <span className="text-xs text-slate-300 truncate">unity_skill</span>
+              </div>
+              <div className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Menu</div>
+              {[
+                { label: 'Projects', active: true },
+                { label: 'My tickets', active: false },
+                { label: 'Skill profile', active: false },
+                { label: 'Members', active: false },
+              ].map((item) => (
+                <div key={item.label} className={`mx-2 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${item.active ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>
+                  {item.label}
                 </div>
               ))}
-              <div className="mt-auto">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Mode</p>
-                <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 gap-0.5">
-                  <div className="flex-1 text-center py-1 text-xs bg-indigo-600 text-white rounded-md font-medium">Serious</div>
-                  <div className="flex-1 text-center py-1 text-xs text-gray-500 rounded-md">Character</div>
-                </div>
+              <div className="mt-auto border-t border-slate-800 p-3 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-cobalt-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">M</div>
+                <span className="text-xs text-slate-300 truncate">Minh Nguyen</span>
               </div>
             </div>
-            {/* main content */}
-            <div className="p-5 overflow-hidden">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-lg">M</div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Minh Nguyen</p>
-                  <div className="flex gap-2 mt-1">
-                    <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-full">backend · 4y</span>
-                    <span className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full flex items-center gap-1"><CheckIcon size={10} /> verified</span>
-                  </div>
+
+            {/* main — kanban */}
+            <div className="flex flex-col bg-white overflow-hidden">
+              {/* topbar */}
+              <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">←</span>
+                  <span className="text-sm font-semibold text-gray-900">Kanban Board</span>
                 </div>
-                <button className="text-xs border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 hover:border-gray-300 transition">Share</button>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Chat</span>
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Meetings</span>
+                  <span className="border border-gray-200 px-2.5 py-1 rounded-lg">Settings</span>
+                </div>
               </div>
 
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Skills (auto-extracted)</p>
-              <div className="space-y-2.5 mb-5">
-                {[['Go', 0.92, '124 PRs'], ['Postgres', 0.78, '38 PRs'], ['Kafka', 0.55, '12 PRs'], ['React', 0.40, '8 PRs']].map(([skill, val, count]) => (
-                  <div key={skill as string} className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-700 w-16">{skill}</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${(val as number) * 100}%` }} />
+              {/* columns */}
+              <div className="flex gap-3 p-4 overflow-x-auto flex-1">
+                {/* To Do */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs font-semibold text-gray-700">To Do</span>
+                    <span className="ml-auto text-xs text-gray-400">2</span>
+                  </div>
+                  {['Setup CI/CD pipeline', 'Write unit tests for Auth'].map((t) => (
+                    <div key={t} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
+                      <p className="text-xs text-gray-700 leading-snug">{t}</p>
                     </div>
-                    <span className="text-xs text-gray-400 w-12 text-right">{count}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Recent activity</p>
-              <div className="space-y-2">
-                {[
-                  ['#fix race in batcher', 'Go', '14:32'],
-                  ['+ design doc: outbox v2', 'Postgres', '11:08'],
-                  ['review: pr/4821 (approved)', 'review', '09:51'],
-                ].map(([title, kind, time], i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs text-gray-500 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                    <span className="flex-1">{title}</span>
-                    <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full">{kind}</span>
-                    <span className="text-gray-400">{time}</span>
+                {/* In Progress */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs font-semibold text-gray-700">In Progress</span>
+                    <span className="ml-auto text-xs text-gray-400">3</span>
                   </div>
-                ))}
+                  {[
+                    { title: 'GitHub webhook for PR tracking', avatar: 'M', color: 'bg-cobalt-500' },
+                    { title: 'Skill auto-extraction from commits', avatar: 'A', color: 'bg-pink-500' },
+                    { title: 'Refactor workspace settings', avatar: 'H', color: 'bg-amber-500' },
+                  ].map((t) => (
+                    <div key={t.title} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
+                      <p className="text-xs text-gray-700 leading-snug mb-2">{t.title}</p>
+                      <div className={`w-5 h-5 rounded-full ${t.color} flex items-center justify-center text-[9px] font-bold text-white`}>{t.avatar}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Done */}
+                <div className="flex flex-col gap-2 min-w-[170px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                    <span className="text-xs font-semibold text-gray-700">Done</span>
+                    <span className="ml-auto text-xs text-gray-400">3</span>
+                  </div>
+                  {[
+                    { title: 'JWT refresh token rotation', avatar: 'M', color: 'bg-cobalt-500' },
+                    { title: 'Kanban drag-and-drop board', avatar: 'A', color: 'bg-pink-500' },
+                    { title: 'Meeting transcript upload', avatar: 'H', color: 'bg-amber-500' },
+                  ].map((t) => (
+                    <div key={t.title} className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm opacity-70">
+                      <p className="text-xs text-gray-500 leading-snug mb-2 line-through decoration-gray-300">{t.title}</p>
+                      <div className={`w-5 h-5 rounded-full ${t.color} flex items-center justify-center text-[9px] font-bold text-white`}>{t.avatar}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* logo strip */}
-      <div className="mt-10 text-center">
-        <p className="text-xs text-gray-400 mb-4">Trusted by teams at</p>
-        <div className="flex items-center justify-center gap-8 flex-wrap">
-          {['Nimbus', 'Ladle', 'Stripe-ish', 'Hex', 'Figment', 'Quanta'].map((n) => (
-            <span key={n} className="text-sm font-semibold text-gray-300 tracking-wide">{n}</span>
-          ))}
         </div>
       </div>
     </section>
@@ -250,7 +275,7 @@ const FEATURES = [
               <GithubIcon />
               <span className="flex-1 font-mono text-xs text-gray-700 truncate">{title}</span>
               {meta && <span className="text-xs text-gray-400 shrink-0">{meta}</span>}
-              <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full shrink-0">{skill}</span>
+              <span className="text-xs bg-cobalt-50 text-cobalt-700 px-2 py-0.5 rounded-full shrink-0">{skill}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${status === 'merged' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{status}</span>
             </div>
           ))}
@@ -279,7 +304,7 @@ const FEATURES = [
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${Math.min((load as number), 1) * 100}%`, background: (load as number) > 1 ? '#ef4444' : '#6366f1' }}
+                    style={{ width: `${Math.min((load as number), 1) * 100}%`, background: (load as number) > 1 ? '#ef4444' : '#3574f0' }}
                   />
                 </div>
                 <div className="flex items-center justify-end gap-1.5">
@@ -340,12 +365,12 @@ function Features() {
     <section id="features" className="py-20 bg-slate-50">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Features</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Features</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 mb-3 tracking-tight">
             Built for teams that ship,<br />not teams that report.
           </h2>
           <svg width="180" height="10" viewBox="0 0 180 10" className="mx-auto opacity-50">
-            <path d="M2 6 Q22 2 45 6 Q68 10 90 6 Q112 2 135 6 Q158 10 178 6" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" />
+            <path d="M2 6 Q22 2 45 6 Q68 10 90 6 Q112 2 135 6 Q158 10 178 6" fill="none" stroke="#3574f0" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
 
@@ -356,10 +381,10 @@ function Features() {
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 items-center ${i % 2 === 1 ? 'md:[direction:rtl]' : ''}`}
             >
               <div className={i % 2 === 1 ? 'md:[direction:ltr]' : ''}>
-                <span className="text-xs font-semibold text-indigo-400 tracking-widest">{feat.num}</span>
+                <span className="text-xs font-semibold text-cobalt-300 tracking-widest">{feat.num}</span>
                 <h3 className="text-2xl font-bold text-gray-900 mt-1 mb-3 tracking-tight">{feat.title}</h3>
                 <p className="text-gray-500 leading-relaxed mb-4">{feat.body}</p>
-                <a href="#" className="inline-flex items-center gap-1 text-sm text-indigo-600 font-medium hover:underline">
+                <a href="#" className="inline-flex items-center gap-1 text-sm text-cobalt-600 font-medium hover:underline">
                   Learn more <ArrowIcon />
                 </a>
               </div>
@@ -391,7 +416,7 @@ function Pricing() {
     <section id="pricing" className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Pricing</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Pricing</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 tracking-tight">Start free. Scale when you're ready.</h2>
         </div>
 
@@ -425,21 +450,21 @@ function Pricing() {
             ))}
           </div>
 
-          {/* Team */}
-          <div className="border-2 border-indigo-600 rounded-2xl p-6 bg-indigo-600 text-white relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest">
+          {/* Team — featured tier with gradient per design system */}
+          <div className="rounded-2xl p-6 text-white relative overflow-hidden" style={{ background: 'linear-gradient(140deg, #2454d6 0%, #7c3aed 45%, #db2777 100%)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest" style={{ boxShadow: '0 2px 8px rgba(124,58,237,0.3)' }}>
               Most popular
             </div>
-            <p className="text-sm text-indigo-200 font-medium mb-1">Team</p>
+            <p className="text-sm text-white/70 font-medium mb-1">Team</p>
             <div className="flex items-baseline gap-1 mb-5">
               <span className="text-5xl font-extrabold">$8</span>
-              <span className="text-sm text-indigo-300">/ user / mo</span>
+              <span className="text-sm text-white/60">/ user / mo</span>
             </div>
-            <Link href="/register" className="block text-center bg-white text-indigo-700 hover:bg-indigo-50 py-2 rounded-xl text-sm font-medium transition mb-4">
+            <Link href="/register" className="block text-center bg-white text-cobalt-700 hover:bg-cobalt-50 py-2 rounded-xl text-sm font-medium transition mb-4">
               Start free trial
             </Link>
             {[true, true, true, true, true, true, true, true].map((inc, i) => (
-              <div key={i} className="h-10 flex items-center border-t border-indigo-500/30">
+              <div key={i} className="h-10 flex items-center border-t border-white/20">
                 <CheckIcon size={16} />
               </div>
             ))}
@@ -450,42 +475,38 @@ function Pricing() {
   )
 }
 
-// ── Integrations ──────────────────────────────────────────────────────────────
-const INTEGRATIONS = [
-  { name: 'GitHub', emoji: '🐙', desc: 'PRs, reviews, commits' },
-  { name: 'Slack', emoji: '💬', desc: 'Help threads, mentions' },
-  { name: 'Calendar', emoji: '📅', desc: 'Meetings, 1:1s' },
-  { name: 'Linear', emoji: '⚡', desc: 'Issues, sprints' },
-  { name: 'Notion', emoji: '📄', desc: 'Design docs' },
-  { name: 'Figma', emoji: '🎨', desc: 'Files, comments' },
-]
+// ── Integration icon ──────────────────────────────────────────────────────────
+const IntegrationIcons: Record<string, { bg: string; fg: string }> = {
+  GitHub: { bg: 'bg-[#24292F]', fg: 'text-white' },
+}
 
 function Integrations() {
+  const icon = IntegrationIcons['GitHub']
   return (
     <section id="integrations" className="py-20 bg-slate-50">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Integrations</span>
+          <span className="text-xs font-semibold text-cobalt-600 uppercase tracking-widest">Integration</span>
           <h2 className="text-4xl font-extrabold text-gray-900 mt-2 tracking-tight">
-            Plug into where the work<br />actually happens.
+            Built on top of where<br />your work already lives.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {INTEGRATIONS.map((it) => (
-            <div key={it.name} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:border-indigo-200 transition">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl shrink-0">
-                {it.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 text-sm">{it.name}</p>
-                <p className="text-xs text-gray-400">{it.desc}</p>
-              </div>
-              <button className="text-xs border border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 px-3 py-1.5 rounded-lg transition shrink-0">
-                Connect
-              </button>
+        <div className="flex justify-center">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center gap-6 shadow-sm max-w-sm w-full">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${icon.bg} ${icon.fg}`}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
             </div>
-          ))}
+            <div>
+              <p className="font-bold text-gray-900 text-lg">GitHub</p>
+              <p className="text-sm text-gray-500 mt-0.5">PRs · code reviews · commits</p>
+              <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                Connect your repos and every contribution is automatically captured, verified, and mapped to skills.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -495,32 +516,21 @@ function Integrations() {
 // ── Footer ────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-12">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8">
+    <footer className="bg-slate-900 text-white py-10">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <p className="font-bold text-white text-base mb-2">unity_skill</p>
-          <p className="text-sm text-slate-400 max-w-[260px] leading-relaxed">
-            Verified work, automatically documented. Stop self-reporting. Let the receipts speak.
-          </p>
+          <p className="font-bold text-white text-base mb-1">unity_skill</p>
+          <p className="text-sm text-slate-400">Verified work, automatically documented.</p>
         </div>
-        {[
-          { heading: 'Product', items: ['Features', 'Pricing', 'Integrations', 'Changelog'] },
-          { heading: 'Company', items: ['About', 'Manifesto', 'Careers', 'Contact'] },
-          { heading: 'Resources', items: ['Docs', 'API', 'Status', 'Privacy'] },
-        ].map((col) => (
-          <div key={col.heading}>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">{col.heading}</p>
-            <div className="space-y-2">
-              {col.items.map((item) => (
-                <p key={item} className="text-sm text-slate-300 hover:text-white cursor-pointer transition">{item}</p>
-              ))}
-            </div>
-          </div>
-        ))}
+        <nav className="flex items-center gap-6 text-sm text-slate-400">
+          <a href="#features" className="hover:text-white transition">Features</a>
+          <a href="#pricing" className="hover:text-white transition">Pricing</a>
+          <a href="#integrations" className="hover:text-white transition">Integration</a>
+        </nav>
       </div>
-      <div className="max-w-6xl mx-auto px-6 mt-10 pt-6 border-t border-slate-800 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 mt-8 pt-6 border-t border-slate-800 flex items-center justify-between">
         <p className="text-xs text-slate-500">© 2026 unity_skill. All rights reserved.</p>
-        <p className="text-xs text-slate-500">Made with ☕ in Hanoi</p>
+        <p className="text-xs text-slate-500">Made with ☕ in Ho Chi Minh City</p>
       </div>
     </footer>
   )
