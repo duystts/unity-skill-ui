@@ -1,266 +1,403 @@
-﻿'use client'
+'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
-import type { Ticket, Project } from '@/types'
+import type { Ticket, Project, UserAchievement, AchievementTier, AchievementSource } from '@/types'
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface SkillEvidenceItem {
-  id: string
-  skillCategory: string
-  aiSummary: string
-  developerNotes: string | null
-  reviewedAt: string | null
-  createdAt: string
-  isPublished: boolean
+  id: string; skillCategory: string; aiSummary: string
+  developerNotes: string | null; reviewedAt: string | null
+  createdAt: string; isPublished: boolean
+}
+interface SkillCategoryGroup { skillCategory: string; count: number; items: SkillEvidenceItem[] }
+interface SkillProfileData { totalApproved: number; categories: SkillCategoryGroup[]; streak?: { currentWeeks: number; longestWeeks: number } | null }
+interface PendingEvidence { id: string; skillCategory: string; aiSummary: string }
+
+// ── Achievement definitions (icon + skill mapping) ────────────────────────────
+const ACH_META: Record<string, { icon: string; skill?: string }> = {
+  quick_closer:    { icon: 'flash' },
+  consistent:      { icon: 'calendar' },
+  sprint_machine:  { icon: 'running' },
+  heavy_lifter:    { icon: 'gym' },
+  speedrunner:     { icon: 'rocket' },
+  task_machine:    { icon: 'settings' },
+  backend_dev:     { icon: 'server',        skill: 'Backend Development' },
+  bug_slayer:      { icon: 'bug',           skill: 'Problem Solving' },
+  frontend_dev:    { icon: 'design-pencil', skill: 'Frontend Development' },
+  devops_engineer: { icon: 'git-fork',      skill: 'DevOps' },
+  architect:       { icon: 'building',      skill: 'Architecture' },
+  qa_champion:     { icon: 'test-tube',     skill: 'Testing' },
+  team_voice:      { icon: 'chat-bubble' },
+  problem_solver:  { icon: 'light-bulb' },
+  mentor:          { icon: 'compass' },
+  decision_maker:  { icon: 'check-circle' },
 }
 
-interface SkillCategoryGroup {
-  skillCategory: string
-  count: number
-  items: SkillEvidenceItem[]
-}
-
-interface SkillProfileData {
-  totalApproved: number
-  categories: SkillCategoryGroup[]
-}
-
-interface PendingEvidence {
-  id: string
-  skillCategory: string
-  aiSummary: string
-}
-
-const AVATAR_COLORS = [
-  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
-  'bg-amber-500', 'bg-rose-500', 'bg-cyan-500',
+const SOURCES: { key: AchievementSource; icon: string; title: string; sub: string }[] = [
+  { key: 'TICKET_METRIC', icon: 'timer',     title: 'Productivity & Speed',  sub: 'Earned automatically when tickets close' },
+  { key: 'TICKET_TAG',    icon: 'bookmark',  title: 'Expertise',              sub: 'Accumulated from tagged tickets · feeds your skill tags' },
+  { key: 'CHAT_AI',       icon: 'community', title: 'Collaboration',          sub: 'AI reviews your chat activity every Sunday' },
 ]
 
-function avatarColor(name: string) {
-  return AVATAR_COLORS[(name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length]
+// ── Tier visual config ────────────────────────────────────────────────────────
+const TIERS: Record<AchievementTier, { label: string; accent: string; bg: string; border: string; glow: string }> = {
+  BRONZE: { label: 'Bronze', accent: '#e0883e', bg: 'rgba(224,136,62,0.12)',  border: 'rgba(224,136,62,0.38)',  glow: 'rgba(224,136,62,0.22)' },
+  SILVER: { label: 'Silver', accent: '#c9d1d9', bg: 'rgba(201,209,217,0.12)', border: 'rgba(201,209,217,0.32)', glow: 'rgba(201,209,217,0.18)' },
+  GOLD:   { label: 'Gold',   accent: '#f0b429', bg: 'rgba(240,180,41,0.13)',  border: 'rgba(240,180,41,0.42)',  glow: 'rgba(240,180,41,0.28)' },
 }
 
-function initials(name: string) {
-  return (name ?? '?')
-    .split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+// ── Skill tag colours (IDE-dark) ──────────────────────────────────────────────
+const SKILL_TAG_STYLE: Record<string, { bg: string; fg: string }> = {
+  'Backend Development':  { bg: 'rgba(56,139,253,0.15)',  fg: '#58a6ff' },
+  'Problem Solving':      { bg: 'rgba(210,153,34,0.15)',  fg: '#e3b341' },
+  'Frontend Development': { bg: 'rgba(165,131,250,0.15)', fg: '#bc8cff' },
+  'Architecture':         { bg: 'rgba(248,81,73,0.13)',   fg: '#f85149' },
+  'DevOps':               { bg: 'rgba(255,123,0,0.13)',   fg: '#e3883e' },
+  'Testing':              { bg: 'rgba(45,212,191,0.13)',  fg: '#39c5cf' },
 }
 
-const SKILL_COLORS: Record<string, string> = {
-  'Backend Development':  'bg-blue-100 text-blue-700',
-  'Frontend Development': 'bg-violet-100 text-violet-700',
-  'Problem Solving':      'bg-amber-100 text-amber-700',
-  'Code Review':          'bg-green-100 text-green-700',
-  'Architecture':         'bg-rose-100 text-rose-700',
-  'DevOps':               'bg-orange-100 text-orange-700',
-  'Testing':              'bg-teal-100 text-teal-700',
+// ── Iconify icon (Iconoir set) ────────────────────────────────────────────────
+function AchIcon({ name, color = '#8b949e', size = 16 }: { name: string; color?: string; size?: number }) {
+  const url = `https://api.iconify.design/iconoir/${name}.svg?color=${encodeURIComponent(color)}`
+  return <img src={url} alt="" width={size} height={size} style={{ display: 'block', width: size, height: size, flexShrink: 0 }} />
 }
 
-const FALLBACK_SKILL_COLORS = [
-  'bg-cobalt-100 text-cobalt-700',
-  'bg-pink-100 text-pink-700',
-  'bg-cyan-100 text-cyan-700',
+// ── Tier badge (diamond + label) ──────────────────────────────────────────────
+function TierBadge({ tier, earned }: { tier: AchievementTier; earned: boolean }) {
+  const t = TIERS[tier]
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      fontSize: 11, fontWeight: 700,
+      color: earned ? t.accent : '#6e7681',
+      background: earned ? t.bg : 'transparent',
+      border: `1px solid ${earned ? t.border : '#21262d'}`,
+      padding: '3px 9px 3px 8px', borderRadius: 9999,
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: 1.5, transform: 'rotate(45deg)', background: earned ? t.accent : '#3a4048', flexShrink: 0 }} />
+      {t.label}
+    </span>
+  )
+}
+
+// ── Achievement tile ──────────────────────────────────────────────────────────
+function AchievementTile({ a }: { a: UserAchievement }) {
+  const t = TIERS[a.tier]
+  const meta = ACH_META[a.key] ?? { icon: 'medal' }
+  return (
+    <div style={{
+      position: 'relative', display: 'flex', flexDirection: 'column',
+      background: '#161b22', border: `1px solid ${t.border}`,
+      borderRadius: 12, padding: 16, overflow: 'hidden',
+      boxShadow: `0 0 0 1px ${t.glow}, 0 8px 22px -14px ${t.glow}`,
+      transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
+    }}>
+      {/* Tier badge */}
+      <div style={{ position: 'absolute', top: 12, right: 12 }}>
+        <TierBadge tier={a.tier} earned={true} />
+      </div>
+
+      {/* Medallion */}
+      <div style={{
+        width: 52, height: 52, borderRadius: 9999, marginBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: `radial-gradient(closest-side, ${t.bg}, #161b22)`,
+        border: `2px solid ${t.accent}`,
+      }}>
+        <AchIcon name={meta.icon} color={t.accent} size={26} />
+      </div>
+
+      <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.01em', paddingRight: 70 }}>
+        {a.title}
+      </h3>
+      <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: '#8b949e', flex: 1 }}>
+        {a.description}
+      </p>
+
+      {/* Earned footer */}
+      <div style={{ marginTop: 12 }}>
+        <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#3fb950', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3fb950" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+          earned · {new Date(a.earnedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Locked achievement tile ───────────────────────────────────────────────────
+function LockedTile({ title, description, icon, tier }: { title: string; description: string; icon: string; tier: AchievementTier }) {
+  const t = TIERS[tier]
+  return (
+    <div style={{
+      position: 'relative', display: 'flex', flexDirection: 'column',
+      background: '#0e1217', border: '1px solid #21262d',
+      borderRadius: 12, padding: 16, opacity: 0.85,
+      transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
+    }}>
+      <div style={{ position: 'absolute', top: 12, right: 12 }}>
+        <TierBadge tier={tier} earned={false} />
+      </div>
+      <div style={{ width: 52, height: 52, borderRadius: 9999, marginBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#161b22', border: '2px solid #30363d', opacity: 0.6,
+      }}>
+        <AchIcon name={icon} color="#6e7681" size={26} />
+      </div>
+      <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#8b949e', letterSpacing: '-0.01em', paddingRight: 70 }}>
+        {title}
+      </h3>
+      <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: '#6e7681', flex: 1 }}>
+        {description}
+      </p>
+      <div style={{ marginTop: 12 }}>
+        <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#6e7681', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <AchIcon name="lock" color="#6e7681" size={12} /> locked
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Section header with Iconify icon ─────────────────────────────────────────
+function SectionHead({ icon, title, sub, right }: { icon: string; title: string; sub: string; right?: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+        <span style={{ width: 30, height: 30, borderRadius: 8, background: '#161b22', border: '1px solid #30363d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <AchIcon name={icon} color="#58a6ff" size={16} />
+        </span>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.01em' }}>{title}</h2>
+          <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#6e7681' }}>{sub}</p>
+        </div>
+      </div>
+      {right}
+    </div>
+  )
+}
+
+// ── Pinned project card ───────────────────────────────────────────────────────
+const BAR_COLORS = ['#3574f0','#8b5cf6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444']
+function PinnedCard({ name, keyPrefix, done, total, color }: { name: string; keyPrefix: string; done: number; total: number; color: string }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+  return (
+    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: '12px 14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 10, color: '#8b949e', background: '#21262d', padding: '2px 6px', borderRadius: 4, flexShrink: 0 }}>
+          {keyPrefix}
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#58a6ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+      </div>
+      <div style={{ width: '100%', background: '#21262d', borderRadius: 9999, height: 5, marginBottom: 8 }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 9999 }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#8b949e' }}>
+        <span>{done}/{total} closed</span>
+        <span style={{ fontWeight: 600, color: '#f0f6fc' }}>{pct}%</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Stat card ─────────────────────────────────────────────────────────────────
+function StatCard({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: '#f0f6fc', letterSpacing: '-0.02em' }}>{value}</div>
+      <div style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#8b949e', marginTop: 2 }}>{label}</div>
+    </div>
+  )
+}
+
+// ── ALL achievement definitions (for locked tiles) ────────────────────────────
+const ALL_DEFS = [
+  { key: 'quick_closer',    source: 'TICKET_METRIC' as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'Quick Closer',    description: 'Close 3 tickets within 24h of creation' },
+  { key: 'consistent',      source: 'TICKET_METRIC' as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'Consistent',      description: 'Close ≥1 ticket per week for 4 consecutive weeks' },
+  { key: 'sprint_machine',  source: 'TICKET_METRIC' as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Sprint Machine',  description: 'Close 10 tickets in a single month' },
+  { key: 'heavy_lifter',    source: 'TICKET_METRIC' as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Heavy Lifter',    description: 'Close 5 tickets in the same calendar week' },
+  { key: 'speedrunner',     source: 'TICKET_METRIC' as AchievementSource, tier: 'GOLD'   as AchievementTier, title: 'Speedrunner',     description: 'Avg close time < 48h across 5+ tickets' },
+  { key: 'task_machine',    source: 'TICKET_METRIC' as AchievementSource, tier: 'GOLD'   as AchievementTier, title: 'Task Machine',    description: 'Close 50 tickets in total' },
+  { key: 'backend_dev',     source: 'TICKET_TAG'    as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'Backend Dev',     description: 'Close 5 tickets tagged Backend' },
+  { key: 'bug_slayer',      source: 'TICKET_TAG'    as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Bug Slayer',      description: 'Close 10 tickets tagged Bug Fix' },
+  { key: 'frontend_dev',    source: 'TICKET_TAG'    as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'Frontend Dev',    description: 'Close 5 tickets tagged Frontend' },
+  { key: 'devops_engineer', source: 'TICKET_TAG'    as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'DevOps Engineer', description: 'Close 5 tickets tagged DevOps' },
+  { key: 'architect',       source: 'TICKET_TAG'    as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Architect',       description: 'Close 3 tickets tagged Architecture' },
+  { key: 'qa_champion',     source: 'TICKET_TAG'    as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'QA Champion',     description: 'Close 8 tickets tagged Testing' },
+  { key: 'team_voice',      source: 'CHAT_AI'       as AchievementSource, tier: 'BRONZE' as AchievementTier, title: 'Team Voice',      description: '≥15 substantive technical messages (AI-classified)' },
+  { key: 'problem_solver',  source: 'CHAT_AI'       as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Problem Solver',  description: 'AI detects ≥3 technical solutions proposed in chat' },
+  { key: 'mentor',          source: 'CHAT_AI'       as AchievementSource, tier: 'GOLD'   as AchievementTier, title: 'Mentor',          description: 'AI detects a pattern of guiding teammates in chat' },
+  { key: 'decision_maker',  source: 'CHAT_AI'       as AchievementSource, tier: 'SILVER' as AchievementTier, title: 'Decision Maker',  description: 'AI detects ≥5 clear technical decisions in chat' },
 ]
 
-function skillColor(name: string, idx: number) {
-  return SKILL_COLORS[name] ?? FALLBACK_SKILL_COLORS[idx % FALLBACK_SKILL_COLORS.length]
-}
-
-const PROJECT_BAR_COLORS = [
-  'bg-cobalt-500', 'bg-violet-500', 'bg-emerald-500',
-  'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-pink-500',
-]
-
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function SkillProfilePage() {
-  const params = useParams<{ workspaceId: string }>()
+  const params      = useParams<{ workspaceId: string }>()
   const { workspaceId } = params
+  const router      = useRouter()
   const queryClient = useQueryClient()
-  const user = useAuthStore((s) => s.user)
-  const userId = user?.id
+  const user        = useAuthStore((s) => s.user)
+  const userId      = user?.id
 
-  // ── Data fetching ──────────────────────────────────────────
+  // ── Data fetching ──────────────────────────────────────────────────────────
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
-    queryKey: queryKeys.tickets.mine(workspaceId),
-    queryFn: () =>
-      apiClient
-        .get<{ data: Ticket[] }>(`/workspaces/${workspaceId}/my-tickets`)
-        .then((r) => r.data.data),
+    queryKey: ['tickets', 'me', 'global'],
+    queryFn: () => apiClient.get<{ data: Ticket[] }>('/users/me/tickets').then(r => r.data.data),
   })
 
   const { data: projects = [] } = useQuery({
-    queryKey: queryKeys.projects.all(workspaceId),
-    queryFn: () =>
-      apiClient
-        .get<{ data: Project[] }>(`/workspaces/${workspaceId}/projects`)
-        .then((r) => r.data.data),
+    queryKey: ['projects', 'me', 'global'],
+    queryFn: () => apiClient.get<{ data: Project[] }>('/users/me/projects').then(r => r.data.data),
   })
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: queryKeys.portfolio.private(workspaceId),
-    queryFn: () =>
-      apiClient
-        .get<{ data: SkillProfileData }>(`/workspaces/${workspaceId}/skill-profile`)
-        .then((r) => r.data.data),
+  const { data: profile } = useQuery({
+    queryKey: queryKeys.portfolio.me(),
+    queryFn: () => apiClient.get<{ data: SkillProfileData }>('/users/me/skill-profile').then(r => r.data.data),
   })
 
   const { data: pendingEvidence = [] } = useQuery({
     queryKey: ['skill-evidences', workspaceId, 'pending'],
-    queryFn: () =>
-      apiClient
-        .get<{ data: PendingEvidence[] }>(`/workspaces/${workspaceId}/skill-evidences?status=PENDING`)
-        .then((r) => r.data.data),
+    queryFn: () => apiClient.get<{ data: PendingEvidence[] }>(`/workspaces/${workspaceId}/skill-evidences?status=PENDING`).then(r => r.data.data),
+  })
+
+  const { data: earnedAchievements = [], isLoading: achLoading } = useQuery({
+    queryKey: ['achievements', 'me'],
+    queryFn: () => apiClient.get<{ data: UserAchievement[] }>('/users/me/achievements').then(r => r.data.data),
   })
 
   const reviewMutation = useMutation({
     mutationFn: ({ evidenceId, action }: { evidenceId: string; action: string }) =>
-      apiClient.patch(`/workspaces/${workspaceId}/skill-evidences/${evidenceId}`, { action }).then((r) => r.data),
+      apiClient.patch(`/workspaces/${workspaceId}/skill-evidences/${evidenceId}`, { action }).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.portfolio.private(workspaceId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.portfolio.me() })
       queryClient.invalidateQueries({ queryKey: ['skill-evidences', workspaceId, 'pending'] })
     },
   })
 
-  // ── Derived data ───────────────────────────────────────────
-  const projectMap = new Map(projects.map((p) => [p.id, p]))
+  // ── Derived ────────────────────────────────────────────────────────────────
+  const projectMap   = new Map(projects.map(p => [p.id, p]))
+  const closedTickets = tickets.filter(t => !!t.closedAt)
+  const totalDone    = closedTickets.length
 
-  // Group tickets by project
+  const avgCloseHours = (() => {
+    if (closedTickets.length === 0) return null
+    const hours = closedTickets.map(t => (new Date(t.closedAt!).getTime() - new Date(t.createdAt).getTime()) / 3600000)
+    return Math.round(hours.reduce((a, b) => a + b, 0) / hours.length)
+  })()
+
   const byProject = tickets.reduce<Record<string, Ticket[]>>((acc, t) => {
     if (!acc[t.projectId]) acc[t.projectId] = []
     acc[t.projectId].push(t)
     return acc
   }, {})
 
-  const projectStats = Object.entries(byProject).map(([projectId, pts]) => {
-    const project = projectMap.get(projectId)
-    const done = pts.filter((t) => !!t.closedAt).length
-    const total = pts.length
-    return { projectId, project, done, total, open: total - done }
-  }).sort((a, b) => b.total - a.total)
+  const projectStats = Object.entries(byProject)
+    .map(([pid, pts]) => {
+      const p    = projectMap.get(pid)
+      const done = pts.filter(t => !!t.closedAt).length
+      return { pid, p, done, total: pts.length }
+    })
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 4)
 
-  const totalDone    = tickets.filter((t) => !!t.closedAt).length
-  const totalTickets = tickets.length
-  const totalProjects = projectStats.length
-  const categories   = profile?.categories ?? []
-  const totalApproved = profile?.totalApproved ?? 0
+  const earnedKeys = new Set(earnedAchievements.map(a => a.key))
+
+  // Skill tags: earned from tag-based achievements
+  const earnedSkillTags = earnedAchievements
+    .map(a => ACH_META[a.key]?.skill)
+    .filter((s): s is string => !!s)
+
+  const lockedSkillTags = ALL_DEFS
+    .filter(d => d.source === 'TICKET_TAG' && !earnedKeys.has(d.key))
+    .map(d => ACH_META[d.key]?.skill)
+    .filter((s): s is string => !!s)
 
   const displayName = user?.displayName || user?.email || 'You'
 
+  const statCards = [
+    { value: String(totalDone), label: 'tickets closed' },
+    { value: avgCloseHours != null ? `${avgCloseHours}h` : '—', label: 'avg close time' },
+    { value: profile?.streak ? `${profile.streak.currentWeeks} wks` : '—', label: 'current streak' },
+    { value: `${earnedAchievements.length}/${ALL_DEFS.length}`, label: 'achievements' },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white">
+    <div style={{ minHeight: '100%', background: '#0d1117', color: 'white', fontFamily: 'var(--font-geist-sans, system-ui)' }}>
+
+      {/* ── Breadcrumb bar ── */}
+      <div style={{ borderBottom: '1px solid #30363d', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0d1117' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#8b949e', fontFamily: 'inherit', padding: 0 }}>← back</button>
+          <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#8b949e' }}>/ skill-profile</span>
+        </div>
+        <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#3fb950', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 6, height: 6, borderRadius: 9999, background: '#3fb950', boxShadow: '0 0 0 3px rgba(63,185,80,0.18)', flexShrink: 0 }} />
+          live · synced
+        </span>
+      </div>
 
       {/* ── Profile header ── */}
-      <div className="border-b border-[#30363d] bg-[#0d1117]">
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          <div className="flex items-start gap-6 flex-wrap">
-
-            {/* Avatar */}
-            <div className={`w-20 h-20 rounded-full ${avatarColor(displayName)} flex items-center justify-center text-2xl font-bold text-white shrink-0 ring-4 ring-[#30363d]`}>
-              {initials(displayName)}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-white">{displayName}</h1>
-              {user?.email && (
-                <p className="text-[#8b949e] text-sm mt-0.5">{user.email}</p>
-              )}
-
-              {/* Summary stats row */}
-              <div className="flex items-center gap-4 mt-3 flex-wrap">
-                <span className="flex items-center gap-1.5 text-sm text-[#8b949e]">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                    <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"/>
-                  </svg>
-                  <strong className="text-white">{totalProjects}</strong> projects
-                </span>
-                <span className="flex items-center gap-1.5 text-sm text-[#8b949e]">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
-                  </svg>
-                  <strong className="text-white">{totalDone}</strong> tickets closed
-                </span>
-                <span className="flex items-center gap-1.5 text-sm text-[#8b949e]">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                    <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path fillRule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
-                  </svg>
-                  <strong className="text-white">{totalTickets - totalDone}</strong> open
-                </span>
-                {totalApproved > 0 && (
-                  <span className="flex items-center gap-1.5 text-sm text-[#8b949e]">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                      <path fillRule="evenodd" d="M9.585.52a2.678 2.678 0 00-3.17 0l-.928.68a1.178 1.178 0 01-.518.215L3.83 1.59a2.678 2.678 0 00-2.24 2.24l-.175 1.14a1.178 1.178 0 01-.215.518l-.68.928a2.678 2.678 0 000 3.17l.68.928c.113.153.186.33.215.518l.175 1.14a2.678 2.678 0 002.24 2.24l1.14.175c.187.029.365.102.518.215l.928.68a2.678 2.678 0 003.17 0l.928-.68a1.18 1.18 0 01.518-.215l1.14-.175a2.678 2.678 0 002.24-2.24l.175-1.14c.029-.187.102-.365.215-.518l.68-.928a2.678 2.678 0 000-3.17l-.68-.928a1.178 1.178 0 01-.215-.518L14.41 3.83a2.678 2.678 0 00-2.24-2.24l-1.14-.175a1.178 1.178 0 01-.518-.215L9.585.52zM7.303 1.728a1.178 1.178 0 011.394 0l.928.68c.348.256.752.423 1.18.489l1.14.175a1.178 1.178 0 01.986.986l.175 1.14c.066.428.233.832.489 1.18l.68.928a1.178 1.178 0 010 1.394l-.68.928a2.678 2.678 0 00-.489 1.18l-.175 1.14a1.178 1.178 0 01-.986.986l-1.14.175a2.678 2.678 0 00-1.18.489l-.928.68a1.178 1.178 0 01-1.394 0l-.928-.68a2.678 2.678 0 00-1.18-.489l-1.14-.175a1.178 1.178 0 01-.986-.986l-.175-1.14a2.678 2.678 0 00-.489-1.18l-.68-.928a1.178 1.178 0 010-1.394l.68-.928c.256-.348.423-.752.489-1.18l.175-1.14a1.178 1.178 0 01.986-.986l1.14-.175a2.678 2.678 0 001.18-.489l.928-.68zM11.28 6.78a.75.75 0 00-1.06-1.06L7 8.94 5.78 7.72a.75.75 0 00-1.06 1.06l1.75 1.75a.75.75 0 001.06 0l3.75-3.75z"/>
-                    </svg>
-                    <strong className="text-white">{totalApproved}</strong> skill evidence
-                  </span>
-                )}
+      <div style={{ padding: '32px 28px 24px', maxWidth: 1024, margin: '0 auto' }}>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* Avatar */}
+          {(() => {
+            const COLORS = ['#3574f0','#7c3aed','#10b981','#f59e0b','#ec4899','#ef4444']
+            const bg = COLORS[(displayName.charCodeAt(0) ?? 0) % COLORS.length]
+            const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+            return (
+              <div style={{ width: 80, height: 80, borderRadius: 9999, background: bg, color: 'white', fontSize: 26, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 0 4px #30363d' }}>
+                {initials}
               </div>
-            </div>
+            )
+          })()}
 
-            {/* Public portfolio link */}
-            <a
-              href={`/portfolio/${userId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 inline-flex items-center gap-1.5 text-sm text-[#c9d1d9] border border-[#30363d] rounded-md px-3 py-1.5 bg-[#21262d] hover:bg-[#30363d] transition"
-            >
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              Public portfolio
-            </a>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.02em' }}>{displayName}</h1>
+            {user?.email && <p style={{ margin: '4px 0 0', fontSize: 14, color: '#8b949e' }}>{user.email}</p>}
           </div>
 
-          {/* Skill badges */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-5">
-              {categories.map((c, i) => (
-                <span key={c.skillCategory} className={`text-xs font-medium px-2.5 py-1 rounded-full ${skillColor(c.skillCategory, i)}`}>
-                  {c.skillCategory} · {c.count}
-                </span>
-              ))}
-            </div>
-          )}
+          <a href={`/portfolio/${userId}`} target="_blank" rel="noopener noreferrer"
+            style={{ background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px 14px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, textDecoration: 'none', fontWeight: 500, flexShrink: 0 }}>
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            Public portfolio
+          </a>
+        </div>
+
+        {/* Stat strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginTop: 24 }}>
+          {statCards.map(s => <StatCard key={s.label} value={s.value} label={s.label} />)}
         </div>
       </div>
 
       {/* ── Main content ── */}
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <div style={{ maxWidth: 1024, margin: '0 auto', padding: '0 28px 48px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
-        {/* ── Pending review ── */}
+        {/* Pending review */}
         {pendingEvidence.length > 0 && (
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <h2 className="text-sm font-semibold text-[#c9d1d9]">
-                Pending Review
-                <span className="ml-2 text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold px-2 py-0.5 rounded-full">
-                  {pendingEvidence.length}
-                </span>
-              </h2>
-            </div>
-            <div className="space-y-2">
-              {pendingEvidence.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-3">
-                  <div className="flex-1 min-w-0">
-                    <span className="inline-block text-[11px] font-semibold text-cobalt-400 bg-cobalt-500/10 border border-cobalt-500/20 px-2 py-0.5 rounded-full mb-1.5">
-                      {item.skillCategory}
-                    </span>
-                    <p className="text-sm text-[#c9d1d9] leading-relaxed">{item.aiSummary}</p>
-                  </div>
-                  <div className="flex gap-1.5 shrink-0 mt-0.5">
-                    <button
-                      onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'APPROVE' })}
-                      disabled={reviewMutation.isPending}
-                      className="text-xs font-semibold bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded-md transition disabled:opacity-50"
-                    >
+            <SectionHead icon="bell" title="Pending Review" sub="AI-generated skill evidence — approve or reject" right={
+              <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#e3b341' }}>
+                <strong style={{ color: '#f0f6fc' }}>{pendingEvidence.length}</strong> waiting
+              </span>
+            } />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {pendingEvidence.map(item => (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: '12px 14px' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, background: 'rgba(56,139,253,0.15)', color: '#58a6ff', border: '1px solid rgba(56,139,253,0.3)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    {item.skillCategory}
+                  </span>
+                  <p style={{ flex: 1, margin: 0, fontSize: 13, color: '#c9d1d9', lineHeight: 1.5 }}>{item.aiSummary}</p>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'APPROVE' })} disabled={reviewMutation.isPending}
+                      style={{ fontSize: 12, fontWeight: 600, background: '#238636', border: 'none', color: 'white', padding: '5px 10px', borderRadius: 6, cursor: 'pointer' }}>
                       Approve
                     </button>
-                    <button
-                      onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'REJECT' })}
-                      disabled={reviewMutation.isPending}
-                      className="text-xs text-[#8b949e] hover:text-red-400 border border-[#30363d] hover:border-red-500/30 px-2.5 py-1 rounded-md transition disabled:opacity-50"
-                    >
+                    <button onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'REJECT' })} disabled={reviewMutation.isPending}
+                      style={{ fontSize: 12, background: 'transparent', border: '1px solid #30363d', color: '#8b949e', padding: '5px 10px', borderRadius: 6, cursor: 'pointer' }}>
                       Reject
                     </button>
                   </div>
@@ -270,150 +407,99 @@ export default function SkillProfilePage() {
           </section>
         )}
 
-        {/* ── Project contributions ── */}
-        <section>
-          <h2 className="text-sm font-semibold text-[#c9d1d9] mb-4 flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-              <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"/>
-            </svg>
-            Project Contributions
-          </h2>
-
-          {ticketsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 animate-pulse">
-                  <div className="h-4 bg-[#21262d] rounded w-1/3 mb-3" />
-                  <div className="h-2 bg-[#21262d] rounded w-full" />
-                </div>
+        {/* Pinned projects */}
+        {projectStats.length > 0 && (
+          <section>
+            <SectionHead icon="pin" title="Project Contributions"
+              sub="Top projects by ticket count · cross-workspace"
+              right={<span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#8b949e' }}><strong style={{ color: '#f0f6fc' }}>{projectStats.length}</strong> projects</span>} />
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(projectStats.length, 4)}, 1fr)`, gap: 12 }}>
+              {projectStats.map(({ pid, p, done, total }, i) => (
+                <PinnedCard
+                  key={pid}
+                  name={p?.name ?? pid.slice(0, 12)}
+                  keyPrefix={p?.keyPrefix ?? 'PROJ'}
+                  done={done}
+                  total={total}
+                  color={BAR_COLORS[i % BAR_COLORS.length]}
+                />
               ))}
             </div>
-          ) : projectStats.length === 0 ? (
-            <div className="bg-[#161b22] border border-dashed border-[#30363d] rounded-lg p-10 text-center">
-              <p className="text-[#8b949e] text-sm">No tickets assigned yet</p>
-              <p className="text-[#8b949e] text-xs mt-1">Ask your PM to assign tickets or claim an Open Pool ticket</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {projectStats.map(({ projectId, project, done, total, open }, idx) => {
-                const pct = total > 0 ? Math.round((done / total) * 100) : 0
-                const barColor = PROJECT_BAR_COLORS[idx % PROJECT_BAR_COLORS.length]
-                return (
-                  <div
-                    key={projectId}
-                    className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 hover:border-[#8b949e] transition"
-                  >
-                    {/* Project name + key */}
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] text-[#8b949e] bg-[#21262d] px-1.5 py-0.5 rounded">
-                            {project?.keyPrefix ?? '??'}
-                          </span>
-                          <span className="text-sm font-semibold text-[#58a6ff] truncate">
-                            {project?.name ?? projectId.slice(0, 12)}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-xs text-[#8b949e] shrink-0">
-                        {done}/{total}
-                      </span>
-                    </div>
-
-                    {/* Progress bar */}
-                    <div className="w-full bg-[#21262d] rounded-full h-1.5 mb-2.5">
-                      <div
-                        className={`h-1.5 rounded-full ${barColor} transition-all`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-3 text-[11px] text-[#8b949e]">
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                        {done} closed
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#388bfd] inline-block" />
-                        {open} open
-                      </span>
-                      <span className="ml-auto font-medium text-[#c9d1d9]">{pct}%</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* ── Skill evidence (approved) ── */}
-        {(profileLoading || categories.length > 0) && (
-          <section>
-            <h2 className="text-sm font-semibold text-[#c9d1d9] mb-4 flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                <path fillRule="evenodd" d="M9.585.52a2.678 2.678 0 00-3.17 0l-.928.68a1.178 1.178 0 01-.518.215L3.83 1.59a2.678 2.678 0 00-2.24 2.24l-.175 1.14a1.178 1.178 0 01-.215.518l-.68.928a2.678 2.678 0 000 3.17l.68.928c.113.153.186.33.215.518l.175 1.14a2.678 2.678 0 002.24 2.24l1.14.175c.187.029.365.102.518.215l.928.68a2.678 2.678 0 003.17 0l.928-.68a1.18 1.18 0 01.518-.215l1.14-.175a2.678 2.678 0 002.24-2.24l.175-1.14c.029-.187.102-.365.215-.518l.68-.928a2.678 2.678 0 000-3.17l-.68-.928a1.178 1.178 0 01-.215-.518L14.41 3.83a2.678 2.678 0 00-2.24-2.24l-1.14-.175a1.178 1.178 0 01-.518-.215L9.585.52zM11.28 6.78a.75.75 0 00-1.06-1.06L7 8.94 5.78 7.72a.75.75 0 00-1.06 1.06l1.75 1.75a.75.75 0 001.06 0l3.75-3.75z"/>
-              </svg>
-              Verified Skills
-            </h2>
-
-            {profileLoading ? (
-              <div className="space-y-2">
-                {[0, 1].map((i) => (
-                  <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 animate-pulse">
-                    <div className="h-3 bg-[#21262d] rounded w-1/4 mb-2" />
-                    <div className="h-3 bg-[#21262d] rounded w-full" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {categories.map((group, idx) => (
-                  <details
-                    key={group.skillCategory}
-                    className="bg-[#161b22] border border-[#30363d] rounded-lg group open:border-[#8b949e] transition"
-                  >
-                    <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none select-none hover:bg-[#21262d] rounded-lg transition">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${skillColor(group.skillCategory, idx)}`}>
-                        {group.skillCategory}
-                      </span>
-                      <span className="text-xs text-[#8b949e]">{group.count} evidence{group.count !== 1 ? 's' : ''}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="ml-auto text-[#8b949e] group-open:rotate-180 transition-transform">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <ul className="px-4 pb-3 pt-1 space-y-2 border-t border-[#30363d]">
-                      {group.items.map((item) => (
-                        <li key={item.id} className="pt-2">
-                          <p className="text-sm text-[#c9d1d9] leading-relaxed">
-                            {item.developerNotes ?? item.aiSummary}
-                          </p>
-                          {item.reviewedAt && (
-                            <p className="text-[11px] text-[#8b949e] mt-0.5">
-                              {new Date(item.reviewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              {item.isPublished && <span className="ml-2 text-green-500">· public</span>}
-                            </p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                ))}
-              </div>
-            )}
           </section>
         )}
 
-        {/* ── Empty state ── */}
-        {!ticketsLoading && !profileLoading && projectStats.length === 0 && categories.length === 0 && pendingEvidence.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-14 h-14 rounded-full bg-[#161b22] border border-[#30363d] flex items-center justify-center mx-auto mb-4">
-              <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="text-[#8b949e]">
-                <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path fillRule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
-              </svg>
+        {/* Skill tags */}
+        {(earnedSkillTags.length > 0 || lockedSkillTags.length > 0) && (
+          <section>
+            <h2 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.01em' }}>Skill Tags</h2>
+            <p style={{ margin: '0 0 14px', fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#6e7681' }}>
+              Unlocked by tag-based achievements · shown on your public portfolio
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              {earnedSkillTags.map(name => {
+                const c = SKILL_TAG_STYLE[name] ?? { bg: 'rgba(139,148,158,0.15)', fg: '#8b949e' }
+                return (
+                  <span key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, padding: '6px 13px', borderRadius: 9999, background: c.bg, color: c.fg, border: `1px solid ${c.fg}33` }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 9999, background: c.fg, flexShrink: 0 }} />
+                    {name}
+                  </span>
+                )
+              })}
+              {lockedSkillTags.map(name => (
+                <span key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 500, padding: '6px 13px', borderRadius: 9999, background: 'transparent', color: '#6e7681', border: '1px dashed #30363d' }}>
+                  {name}
+                </span>
+              ))}
             </div>
-            <p className="text-[#8b949e] text-sm">No activity yet</p>
-            <p className="text-[#8b949e] text-xs mt-1">Get assigned to tickets and connect GitHub to start building your profile</p>
+          </section>
+        )}
+
+        {/* Achievement sections by source */}
+        {SOURCES.map(src => {
+          const srcDefs   = ALL_DEFS.filter(d => d.source === src.key)
+          const srcEarned = earnedAchievements.filter(a => srcDefs.some(d => d.key === a.key))
+          const srcLocked = srcDefs.filter(d => !earnedKeys.has(d.key))
+
+          return (
+            <section key={src.key}>
+              <SectionHead
+                icon={src.icon}
+                title={src.title}
+                sub={src.sub}
+                right={
+                  <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#8b949e' }}>
+                    <strong style={{ color: '#f0f6fc' }}>{srcEarned.length}</strong> / {srcDefs.length} earned
+                  </span>
+                }
+              />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {/* Earned tiles */}
+                {srcEarned.map(a => (
+                  <AchievementTile key={a.key} a={a} />
+                ))}
+                {/* Locked tiles */}
+                {srcLocked.map(d => (
+                  <LockedTile
+                    key={d.key}
+                    title={d.title}
+                    description={d.description}
+                    icon={ACH_META[d.key]?.icon ?? 'medal'}
+                    tier={d.tier}
+                  />
+                ))}
+              </div>
+            </section>
+          )
+        })}
+
+        {/* Empty state */}
+        {!ticketsLoading && !achLoading && projectStats.length === 0 && earnedAchievements.length === 0 && pendingEvidence.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 9999, background: '#161b22', border: '1px solid #30363d', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <AchIcon name="circle" color="#8b949e" size={24} />
+            </div>
+            <p style={{ margin: 0, color: '#8b949e', fontSize: 14 }}>No activity yet</p>
+            <p style={{ margin: '4px 0 0', color: '#6e7681', fontSize: 12 }}>Get assigned to tickets and connect GitHub to start building your profile</p>
           </div>
         )}
 

@@ -27,8 +27,17 @@ export function useWebSocket() {
           const notification = JSON.parse(message.body)
           // Invalidate cache — NotificationBell/Character re-fetches
           queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() })
-          // In SERIOUS mode: show toast immediately
-          if (mode === 'serious') {
+
+          if (notification.type === 'ACHIEVEMENT_EARNED') {
+            const { iconEmoji, title, tier } = notification.payload ?? {}
+            const tierLabel = tier === 'GOLD' ? '🥇' : tier === 'SILVER' ? '🥈' : '🥉'
+            toast(`${tierLabel} Achievement Unlocked!`, {
+              description: `${iconEmoji ?? ''} ${title}`,
+              duration: 6000,
+            })
+            // Invalidate achievements so skill-profile re-fetches
+            queryClient.invalidateQueries({ queryKey: ['achievements', 'me'] })
+          } else if (mode === 'serious') {
             toast(notification.type.replace(/_/g, ' '), {
               description: `New notification received`,
             })

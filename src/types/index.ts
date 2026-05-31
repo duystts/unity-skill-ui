@@ -82,6 +82,11 @@ export interface AutoTriggerRule {
 
 export type AssignmentMode = 'NONE' | 'ASSIGNED' | 'OPEN_POOL'
 
+export type TicketTagValue =
+  | 'BACKEND' | 'FRONTEND' | 'DEVOPS' | 'TESTING' | 'BUG_FIX'
+  | 'FEATURE' | 'ARCHITECTURE' | 'DATABASE' | 'API' | 'PERFORMANCE'
+  | 'SECURITY' | 'DOCUMENTATION' | 'CODE_REVIEW'
+
 export interface Ticket {
   id: string
   workspaceId: string
@@ -97,6 +102,7 @@ export interface Ticket {
   closedAt: string | null
   createdAt: string
   updatedAt: string
+  tags: TicketTagValue[]   // skill tags — included in list responses (batch-loaded, no N+1)
 }
 
 export interface TicketAttachment {
@@ -156,6 +162,27 @@ export interface ChatMessage {
   senderName: string
   createdAt: string // ISO 8601
 }
+
+// ── Achievement system ────────────────────────────────────────────────────────
+
+export type AchievementTier = 'BRONZE' | 'SILVER' | 'GOLD'
+export type AchievementSource = 'TICKET_METRIC' | 'TICKET_TAG' | 'CHAT_AI'
+
+export interface Achievement {
+  key: string
+  title: string
+  description: string
+  iconEmoji: string
+  tier: AchievementTier
+  source: AchievementSource
+}
+
+export interface UserAchievement extends Achievement {
+  earnedAt: string
+  evidenceSnapshot: Record<string, unknown> | null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 /** AI assistant chat turn — kept on frontend, sent as history each request */
 export interface AiChatTurn {

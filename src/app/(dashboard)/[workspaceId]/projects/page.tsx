@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
-import type { Project, Ticket } from '@/types'
+import type { Project, Ticket, WorkspaceMember } from '@/types'
 
 type Tab = 'active' | 'archived'
 
@@ -79,6 +79,18 @@ export default function ProjectsPage() {
     return { open, closed, mine, total: tickets.length }
   }
 
+  // ── Role check ────────────────────────────────────────────
+  const { data: members = [] } = useQuery({
+    queryKey: queryKeys.workspaces.members(workspaceId),
+    queryFn: () =>
+      apiClient
+        .get<{ data: WorkspaceMember[] }>(`/workspaces/${workspaceId}/members`)
+        .then((r) => r.data.data),
+    staleTime: 60_000,
+  })
+  const myRole = members.find((m) => m.userId === currentUser?.id)?.role
+  const isPmOrAdmin = myRole === 'PM' || myRole === 'ADMIN'
+
   // ── Unarchive mutation ─────────────────────────────────────
   const unarchiveMutation = useMutation({
     mutationFn: (projectId: string) =>
@@ -100,12 +112,14 @@ export default function ProjectsPage() {
       <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
         <h1 className="text-lg font-bold text-gray-900">Projects</h1>
         <div className="flex-1" />
-        <button
-          onClick={() => router.push(`/${workspaceId}/projects/new`)}
-          className="px-3 py-1.5 text-sm bg-cobalt-600 text-white rounded-lg hover:bg-cobalt-700 transition font-medium"
-        >
-          + New Project
-        </button>
+        {isPmOrAdmin && (
+          <button
+            onClick={() => router.push(`/${workspaceId}/projects/new`)}
+            className="px-3 py-1.5 text-sm bg-cobalt-600 text-white rounded-lg hover:bg-cobalt-700 transition font-medium"
+          >
+            + New Project
+          </button>
+        )}
       </div>
 
       {/* ── Tabs ── */}
@@ -158,12 +172,14 @@ export default function ProjectsPage() {
               {tab === 'active' ? (
                 <>
                   <p className="text-gray-500 mb-4">No active projects yet</p>
-                  <button
-                    onClick={() => router.push(`/${workspaceId}/projects/new`)}
-                    className="text-cobalt-600 hover:text-cobalt-700 text-sm font-medium hover:underline"
-                  >
-                    + New Project
-                  </button>
+                  {isPmOrAdmin && (
+                    <button
+                      onClick={() => router.push(`/${workspaceId}/projects/new`)}
+                      className="text-cobalt-600 hover:text-cobalt-700 text-sm font-medium hover:underline"
+                    >
+                      + New Project
+                    </button>
+                  )}
                 </>
               ) : (
                 <p className="text-gray-400 text-sm">No archived projects</p>

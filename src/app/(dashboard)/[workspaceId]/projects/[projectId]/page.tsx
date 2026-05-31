@@ -11,7 +11,54 @@ import axios from 'axios'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
-import type { Ticket, TicketActivity, TicketAttachment, StorageStats, WorkflowStage, WorkspaceMember, AiChatTurn } from '@/types'
+import type { Ticket, TicketActivity, TicketAttachment, StorageStats, WorkflowStage, WorkspaceMember, AiChatTurn, TicketTagValue } from '@/types'
+
+const ALL_TAGS: TicketTagValue[] = [
+  'BACKEND', 'FRONTEND', 'DEVOPS', 'TESTING', 'BUG_FIX',
+  'FEATURE', 'ARCHITECTURE', 'DATABASE', 'API', 'PERFORMANCE',
+  'SECURITY', 'DOCUMENTATION', 'CODE_REVIEW',
+]
+
+const TAG_LABELS: Record<TicketTagValue, string> = {
+  BACKEND: 'Backend', FRONTEND: 'Frontend', DEVOPS: 'DevOps',
+  TESTING: 'Testing', BUG_FIX: 'Bug Fix', FEATURE: 'Feature',
+  ARCHITECTURE: 'Architecture', DATABASE: 'Database', API: 'API',
+  PERFORMANCE: 'Performance', SECURITY: 'Security',
+  DOCUMENTATION: 'Docs', CODE_REVIEW: 'Code Review',
+}
+
+const TAG_COLORS: Record<TicketTagValue, string> = {
+  BACKEND: 'bg-blue-100 text-blue-700 border-blue-200',
+  FRONTEND: 'bg-violet-100 text-violet-700 border-violet-200',
+  DEVOPS: 'bg-orange-100 text-orange-700 border-orange-200',
+  TESTING: 'bg-teal-100 text-teal-700 border-teal-200',
+  BUG_FIX: 'bg-red-100 text-red-700 border-red-200',
+  FEATURE: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  ARCHITECTURE: 'bg-rose-100 text-rose-700 border-rose-200',
+  DATABASE: 'bg-amber-100 text-amber-700 border-amber-200',
+  API: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  PERFORMANCE: 'bg-lime-100 text-lime-700 border-lime-200',
+  SECURITY: 'bg-pink-100 text-pink-700 border-pink-200',
+  DOCUMENTATION: 'bg-slate-100 text-slate-600 border-slate-200',
+  CODE_REVIEW: 'bg-cobalt-100 text-cobalt-700 border-cobalt-200',
+}
+
+// Inline style objects for kanban tag chips (matches design system spec)
+const TAG_STYLE: Record<string, { bg: string; fg: string }> = {
+  'Backend':       { bg: '#dbeafe', fg: '#1d4ed8' },
+  'Frontend':      { bg: '#ede9fe', fg: '#6d28d9' },
+  'DevOps':        { bg: '#ffedd5', fg: '#c2410c' },
+  'Testing':       { bg: '#ccfbf1', fg: '#0f766e' },
+  'Bug Fix':       { bg: '#fee2e2', fg: '#b91c1c' },
+  'Feature':       { bg: '#dcfce7', fg: '#15803d' },
+  'Architecture':  { bg: '#ffe4e6', fg: '#be123c' },
+  'Database':      { bg: '#e0e7ff', fg: '#4338ca' },
+  'API':           { bg: '#cffafe', fg: '#0e7490' },
+  'Performance':   { bg: '#fef3c7', fg: '#b45309' },
+  'Security':      { bg: '#f1f5f9', fg: '#475569' },
+  'Docs':          { bg: '#f5f3ff', fg: '#7c3aed' },
+  'Code Review':   { bg: '#ecfccb', fg: '#4d7c0f' },
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -202,6 +249,29 @@ export default function KanbanBoardPage() {
         )
         .then(r => r.data.data),
     enabled: !!selectedTicket,
+  })
+
+  const { data: ticketTags = [], refetch: refetchTags } = useQuery({
+    queryKey: ['ticket-tags', workspaceId, selectedTicket?.id],
+    queryFn: () =>
+      apiClient
+        .get<{ data: { tags: TicketTagValue[] } }>(`/workspaces/${workspaceId}/tickets/${selectedTicket!.id}/tags`)
+        .then((r) => r.data.data.tags),
+    enabled: !!selectedTicket,
+  })
+
+  const addTagMutation = useMutation({
+    mutationFn: (tag: TicketTagValue) =>
+      apiClient.post(`/workspaces/${workspaceId}/tickets/${selectedTicket!.id}/tags`, { tag }),
+    onSuccess: () => refetchTags(),
+    onError: () => toast.error('Failed to add tag'),
+  })
+
+  const removeTagMutation = useMutation({
+    mutationFn: (tag: TicketTagValue) =>
+      apiClient.delete(`/workspaces/${workspaceId}/tickets/${selectedTicket!.id}/tags/${tag}`),
+    onSuccess: () => refetchTags(),
+    onError: () => toast.error('Failed to remove tag'),
   })
 
   const { data: storageStats } = useQuery({
@@ -736,88 +806,100 @@ export default function KanbanBoardPage() {
                     <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
                       {stageTickets.map((ticket) => {
                         const assigneeName = memberName(ticket.assigneeId)
+                        const assigneeInitials = assigneeName
+                          ? assigneeName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+                          : null
+                        const AVATAR_COLORS = ['#3574f0','#ec4899','#f59e0b','#10b981','#8b5cf6','#06b6d4']
+                        const avatarBg = assigneeName
+                          ? AVATAR_COLORS[(assigneeName.charCodeAt(0) ?? 0) % AVATAR_COLORS.length]
+                          : '#94a3b8'
                         const isSelected = selectedTicket?.id === ticket.id
+                        const isDone = !!ticket.closedAt
                         return (
                           <div
                             key={ticket.id}
                             onClick={() => openDetail(ticket)}
-                            className={`bg-white rounded-lg border p-3 cursor-pointer hover:border-cobalt-300 hover:shadow-sm transition ${
-                              isSelected
-                                ? 'border-cobalt-400 ring-1 ring-cobalt-200 shadow-sm'
-                                : 'border-gray-200'
-                            }`}
+                            style={{
+                              background: 'white',
+                              border: `1px solid ${isSelected ? '#3574f0' : '#e2e8f0'}`,
+                              borderRadius: 10,
+                              padding: 12,
+                              cursor: 'pointer',
+                              opacity: isDone ? 0.7 : 1,
+                              boxShadow: isSelected
+                                ? '0 0 0 2px rgba(53,116,240,0.18), 0 1px 2px rgba(15,23,42,.05)'
+                                : '0 1px 2px rgba(15,23,42,.05)',
+                              transition: 'all 160ms ease-out',
+                            }}
+                            onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.borderColor = '#cbd5e1' }}
+                            onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.borderColor = '#e2e8f0' }}
                           >
-                            {/* Top row: ticket code + status badges */}
-                            <div className="flex items-center gap-1 mb-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono font-semibold text-cobalt-500 bg-cobalt-50 px-1.5 py-0.5 rounded">
+                            {/* Ticket code + PR badge row */}
+                            <div className="flex items-center gap-1 mb-1.5">
+                              <span className="text-[10px] font-mono font-semibold text-cobalt-500 bg-cobalt-50 px-1.5 py-0.5 rounded leading-none">
                                 {ticket.ticketCode}
                               </span>
                               {ticket.hasPr && (
-                                <span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
-                                  <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"/>
-                                  </svg>
-                                  PR
-                                </span>
+                                <span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-medium leading-none">PR</span>
                               )}
                               {ticket.assignmentMode === 'OPEN_POOL' && !ticket.assigneeId && (
-                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
-                                  Open Pool
-                                </span>
-                              )}
-                              {ticket.closedAt && (
-                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
-                                  Closed
-                                </span>
+                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium leading-none">Open Pool</span>
                               )}
                             </div>
 
                             {/* Title */}
-                            <p
-                              className={`text-sm font-medium leading-snug ${
-                                ticket.closedAt
-                                  ? 'text-gray-400 line-through'
-                                  : 'text-gray-800'
-                              }`}
-                            >
+                            <p style={{
+                              margin: '0 0 8px',
+                              fontSize: 13,
+                              color: isDone ? '#94a3b8' : '#334155',
+                              lineHeight: 1.4,
+                              textDecoration: isDone ? 'line-through' : 'none',
+                              textDecorationColor: '#cbd5e1',
+                            }}>
                               {ticket.title}
                             </p>
 
-                            {/* Description preview */}
-                            {ticket.description && (
-                              <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                                {ticket.description}
-                              </p>
+                            {/* Skill tags — always visible */}
+                            {ticket.tags && ticket.tags.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8, opacity: isDone ? 0.65 : 1 }}>
+                                {ticket.tags.map((tag) => {
+                                  const c = TAG_STYLE[TAG_LABELS[tag as TicketTagValue] ?? tag] ?? { bg: '#f1f5f9', fg: '#475569' }
+                                  return (
+                                    <span key={tag} style={{
+                                      fontFamily: 'var(--font-geist-mono, monospace)',
+                                      fontSize: 10, fontWeight: 600,
+                                      padding: '1px 7px', borderRadius: 9999,
+                                      background: c.bg, color: c.fg,
+                                      lineHeight: 1.6, whiteSpace: 'nowrap',
+                                    }}>
+                                      {TAG_LABELS[tag as TicketTagValue] ?? tag}
+                                    </span>
+                                  )
+                                })}
+                              </div>
                             )}
 
-                            {/* Footer */}
-                            <div className="flex items-center justify-between gap-2 mt-2.5">
-                              {assigneeName ? (
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <Avatar name={assigneeName} size="xs" />
-                                  <span className="text-[11px] text-gray-500 truncate">
-                                    {assigneeName}
-                                  </span>
+                            {/* Footer: avatar + claim */}
+                            <div className="flex items-center justify-between gap-2">
+                              {assigneeInitials ? (
+                                <div style={{
+                                  width: 20, height: 20, borderRadius: 9999,
+                                  background: avatarBg, color: 'white',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 9, fontWeight: 700, flexShrink: 0,
+                                }}>
+                                  {assigneeInitials}
                                 </div>
-                              ) : (
-                                <span />
+                              ) : <span />}
+                              {ticket.assignmentMode === 'OPEN_POOL' && !ticket.assigneeId && (
+                                <button
+                                  className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded-full font-medium transition shrink-0"
+                                  disabled={claimMutation.isPending}
+                                  onClick={(e) => { e.stopPropagation(); claimMutation.mutate({ ticketId: ticket.id }) }}
+                                >
+                                  Claim
+                                </button>
                               )}
-
-                              {ticket.assignmentMode === 'OPEN_POOL' &&
-                                !ticket.assigneeId && (
-                                  <button
-                                    className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded-full font-medium transition shrink-0"
-                                    disabled={claimMutation.isPending}
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      claimMutation.mutate({
-                                        ticketId: ticket.id,
-                                      })
-                                    }}
-                                  >
-                                    Claim
-                                  </button>
-                                )}
                             </div>
                           </div>
                         )
@@ -1268,6 +1350,55 @@ export default function KanbanBoardPage() {
                   </div>
                 </div>
               )}
+
+              {/* ── Skill Tags ── */}
+              <div>
+                <label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
+                  Skill Tags
+                </label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {ticketTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => removeTagMutation.mutate(tag)}
+                      disabled={removeTagMutation.isPending}
+                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full border flex items-center gap-1 transition hover:opacity-70 ${TAG_COLORS[tag]}`}
+                      title="Click to remove"
+                    >
+                      {TAG_LABELS[tag]}
+                      <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  ))}
+                  <details className="relative" onToggle={(e) => {
+                    const el = e.currentTarget
+                    if (el.open) el.querySelector('summary')?.blur()
+                  }}>
+                    <summary className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-dashed border-gray-300 text-gray-400 hover:border-cobalt-400 hover:text-cobalt-600 cursor-pointer list-none transition">
+                      + Add tag
+                    </summary>
+                    <div className="absolute z-20 top-7 left-0 bg-white border border-gray-200 rounded-xl shadow-lg p-2 flex flex-wrap gap-1 w-56">
+                      {ALL_TAGS.filter((t) => !ticketTags.includes(t)).map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={(e) => {
+                            addTagMutation.mutate(tag)
+                            const details = (e.target as HTMLElement).closest('details')
+                            if (details) details.open = false
+                          }}
+                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full border transition hover:opacity-80 ${TAG_COLORS[tag]}`}
+                        >
+                          {TAG_LABELS[tag]}
+                        </button>
+                      ))}
+                      {ALL_TAGS.every((t) => ticketTags.includes(t)) && (
+                        <p className="text-[11px] text-gray-400 px-1">All tags applied</p>
+                      )}
+                    </div>
+                  </details>
+                </div>
+              </div>
 
               {/* ── Attachments ── */}
               <div>

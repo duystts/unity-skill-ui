@@ -44,6 +44,9 @@ export const queryKeys = {
       ['meetings', workspaceId, projectId] as const,
   },
   portfolio: {
+    /** Cross-workspace skill profile — aggregates all workspaces for the current user. */
+    me: () => ['portfolio', 'me'] as const,
+    /** @deprecated use `portfolio.me()` — per-workspace profile is misleading */
     private: (workspaceId: string) => ['portfolio', workspaceId, 'private'] as const,
     public: (userId: string) => ['portfolio', 'public', userId] as const,
   },
