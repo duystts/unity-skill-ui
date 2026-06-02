@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
@@ -87,6 +87,9 @@ function timeAgo(iso: string): string {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
+  // Extract workspaceId from URL: /{workspaceId}/...
+  const workspaceId = pathname?.split('/')?.[1] ?? ''
   const user = useAuthStore((s) => s.user)
   const accessToken = useAuthStore((s) => s.accessToken)
   const setAccessToken = useAuthStore((s) => s.setAccessToken)
@@ -378,9 +381,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Menu items */}
               {[
-                { icon: 'user', label: t('topbar.skillprofile'), action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
+                { icon: 'user', label: t('topbar.skillprofile'), action: () => { setUserMenuOpen(false); router.push(workspaceId ? `/${workspaceId}/skill-profile` : '/workspaces') } },
                 { icon: 'data-transfer-both', label: t('topbar.switchworkspace'), action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
-                { icon: 'settings', label: t('topbar.accountsettings'), action: () => setUserMenuOpen(false) },
+                { icon: 'settings', label: t('topbar.accountsettings'), action: () => { setUserMenuOpen(false); router.push(workspaceId ? `/${workspaceId}/settings/account` : '/workspaces') } },
                 { icon: 'keyframes', label: t('topbar.keyboardshortcuts'), hint: '⌘K', action: () => setUserMenuOpen(false) },
               ].map((item) => (
                 <button

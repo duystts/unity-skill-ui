@@ -321,6 +321,139 @@ export default function SkillProfilePage() {
 
   const displayName = user?.displayName || user?.email || 'You'
 
+  // ── Generate standalone HTML portfolio ────────────────────────────────────
+  const generatePortfolioHTML = () => {
+    const skillTagsHTML = earnedSkillTags.map(name => {
+      const c = SKILL_TAG_STYLE[name] ?? { bg: 'rgba(139,148,158,0.15)', fg: '#8b949e' }
+      return `<span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:6px 13px;border-radius:9999px;background:${c.bg};color:${c.fg};border:1px solid ${c.fg}33">
+        <span style="width:6px;height:6px;border-radius:9999px;background:${c.fg}"></span>${name}</span>`
+    }).join('\n')
+
+    const projectsHTML = projectStats.map(({ p, done, total }, i) => {
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0
+      const colors = ['#3574f0','#8b5cf6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444']
+      const color = colors[i % colors.length]
+      return `<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+          <span style="font-family:monospace;font-size:10px;color:#8b949e;background:#21262d;padding:2px 6px;border-radius:4px">${p?.keyPrefix ?? 'PROJ'}</span>
+          <span style="font-size:13px;font-weight:600;color:#58a6ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p?.name ?? 'Project'}</span>
+        </div>
+        <div style="width:100%;background:#21262d;border-radius:9999px;height:5px;margin-bottom:8px">
+          <div style="width:${pct}%;height:100%;background:${color};border-radius:9999px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:monospace;font-size:11px;color:#8b949e">
+          <span>${done}/${total} closed</span><span style="font-weight:600;color:#f0f6fc">${pct}%</span>
+        </div>
+      </div>`
+    }).join('\n')
+
+    const achievementsHTML = earnedAchievements.map(a => {
+      const tierColors: Record<string, string> = { BRONZE: '#e0883e', SILVER: '#c9d1d9', GOLD: '#f0b429' }
+      const color = tierColors[a.tier] ?? '#8b949e'
+      return `<div style="background:#161b22;border:1px solid ${color}66;border-radius:12px;padding:16px;position:relative">
+        <div style="position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;color:${color};background:${color}22;border:1px solid ${color}66;padding:3px 9px;border-radius:9999px">
+          ${a.tier.charAt(0) + a.tier.slice(1).toLowerCase()}</div>
+        <div style="font-size:26px;margin-bottom:10px">${a.iconEmoji}</div>
+        <h3 style="margin:0 0 4px;font-size:14px;font-weight:700;color:#f0f6fc">${a.title}</h3>
+        <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5">${a.description}</p>
+        <div style="margin-top:10px;font-size:11px;color:#3fb950;font-family:monospace">
+          ✓ earned · ${new Date(a.earnedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+      </div>`
+    }).join('\n')
+
+    const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+    const bgColors = ['#3574f0','#7c3aed','#10b981','#f59e0b','#ec4899','#ef4444','#06b6d4']
+    const avatarBgColor = bgColors[(displayName.charCodeAt(0) ?? 0) % bgColors.length]
+    const avatarEl = user?.avatarUrl
+      ? `<img src="${user.avatarUrl}" alt="${displayName}" style="width:80px;height:80px;border-radius:9999px;object-fit:cover;border:4px solid #30363d;flex-shrink:0">`
+      : `<div style="width:80px;height:80px;border-radius:9999px;background:${avatarBgColor};color:white;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:4px solid #30363d">${initials}</div>`
+
+    const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${displayName} — unity_skill Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#c9d1d9;font-family:'Geist',system-ui,sans-serif;min-height:100vh;padding:0}
+  .container{max-width:900px;margin:0 auto;padding:40px 24px}
+  h1,h2,h3,h4{letter-spacing:-0.02em}
+  .mono{font-family:'Geist Mono',monospace}
+  .section{margin-bottom:32px}
+  .section-title{font-size:15px;font-weight:700;color:#f0f6fc;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px}
+  .stat-value{font-size:24px;font-weight:800;color:#f0f6fc}
+  .stat-label{font-family:'Geist Mono',monospace;font-size:11px;color:#8b949e;margin-top:2px}
+  .badge{display:inline-flex;align-items:center;gap:6px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:6px 12px;border-radius:8px;font-size:13px;text-decoration:none}
+  @media(max-width:640px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;padding-bottom:32px;border-bottom:1px solid #30363d;margin-bottom:32px">
+    ${avatarEl}
+    <div style="flex:1;min-width:200px">
+      <h1 style="font-size:28px;font-weight:700;color:#f0f6fc">${displayName}</h1>
+      ${user?.email ? `<p style="margin:4px 0 0;font-size:14px;color:#8b949e">${user.email}</p>` : ''}
+      <p style="margin:8px 0 0;font-family:'Geist Mono',monospace;font-size:12px;color:#6e7681">// Generated by unity_skill · ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="section">
+    <div class="grid-4">
+      <div class="stat-card"><div class="stat-value">${totalDone}</div><div class="stat-label">tickets closed</div></div>
+      <div class="stat-card"><div class="stat-value">${avgCloseHours != null ? `${avgCloseHours}h` : '—'}</div><div class="stat-label">avg close time</div></div>
+      <div class="stat-card"><div class="stat-value">${profile?.streak ? `${profile.streak.currentWeeks} wks` : '—'}</div><div class="stat-label">current streak</div></div>
+      <div class="stat-card"><div class="stat-value">${earnedAchievements.length}/${ALL_DEFS.length}</div><div class="stat-label">achievements</div></div>
+    </div>
+  </div>
+
+  ${projectStats.length > 0 ? `
+  <!-- Projects -->
+  <div class="section">
+    <div class="section-title">📁 Project Contributions</div>
+    <div class="grid-2">${projectsHTML}</div>
+  </div>` : ''}
+
+  ${earnedSkillTags.length > 0 ? `
+  <!-- Skill Tags -->
+  <div class="section">
+    <div class="section-title">🏷️ Skill Tags</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${skillTagsHTML}</div>
+  </div>` : ''}
+
+  ${earnedAchievements.length > 0 ? `
+  <!-- Achievements -->
+  <div class="section">
+    <div class="section-title">🏆 Achievements (${earnedAchievements.length} earned)</div>
+    <div class="grid-3">${achievementsHTML}</div>
+  </div>` : ''}
+
+  <div style="text-align:center;padding-top:32px;border-top:1px solid #30363d;font-family:'Geist Mono',monospace;font-size:11px;color:#6e7681">
+    Generated by <strong style="color:#3574f0">unity_skill</strong> · Proof of Work Platform
+  </div>
+</div>
+</body>
+</html>`
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `${displayName.replace(/\s+/g, '_')}_portfolio.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const statCards = [
     { value: String(totalDone), label: t('skillprofile.ticketsclosed') },
     { value: avgCloseHours != null ? `${avgCloseHours}h` : '—', label: t('skillprofile.avgclosetime') },
@@ -361,11 +494,12 @@ export default function SkillProfilePage() {
             {user?.email && <p style={{ margin: '4px 0 0', fontSize: 14, color: '#8b949e' }}>{user.email}</p>}
           </div>
 
-          <a href={`/portfolio/${userId}`} target="_blank" rel="noopener noreferrer"
-            style={{ background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px 14px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, textDecoration: 'none', fontWeight: 500, flexShrink: 0 }}>
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          <button onClick={generatePortfolioHTML}
+            style={{ background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px 14px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, flexShrink: 0, cursor: 'pointer', fontFamily: 'inherit' }}>
+            {/* Download icon */}
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             {t('skillprofile.publicportfolio')}
-          </a>
+          </button>
         </div>
 
         {/* Stat strip */}
