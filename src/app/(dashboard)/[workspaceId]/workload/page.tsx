@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/apiClient';
+import { useLang } from '@/lib/i18n';
 
 type WorkloadStatus = 'AVAILABLE' | 'BALANCED' | 'OVERLOADED';
 
@@ -29,6 +30,7 @@ function memberInitials(name: string): string {
 export default function WorkloadPage() {
   const params = useParams();
   const workspaceId = params.workspaceId as string;
+  const { t } = useLang();
   const [members, setMembers] = useState<MemberWorkloadInfo[]>([]);
   const [error, setError]    = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,9 +64,9 @@ export default function WorkloadPage() {
     : Math.round(members.filter(m => m.workloadStatus !== 'OVERLOADED').length / members.length * 100);
 
   const summaryCards = [
-    { label: 'TEAM CAPACITY', value: `${capacityPct}%` },
-    { label: 'OPEN TICKETS',  value: totalOpen },
-    { label: 'MEMBERS',       value: members.length },
+    { label: t('workload.teamcapacity').toUpperCase(), value: `${capacityPct}%` },
+    { label: t('workload.opentickets').toUpperCase(),  value: totalOpen },
+    { label: t('workload.members').toUpperCase(),      value: members.length },
   ];
 
   const isOverloaded = overloadedCount > 0;
@@ -73,18 +75,18 @@ export default function WorkloadPage() {
     <div className="flex flex-col h-full overflow-hidden">
       {/* TopBar */}
       <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
-        <h1 className="text-lg font-bold text-gray-900">Workload</h1>
+        <h1 className="text-lg font-bold text-gray-900">{t('workload.title')}</h1>
         <span style={{
           fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
           background: isOverloaded ? '#fef3c7' : '#d1fae5',
           color:      isOverloaded ? '#92400e' : '#065f46',
           border:     `1px solid ${isOverloaded ? '#fde68a' : '#a7f3d0'}`,
         }}>
-          {isOverloaded ? `${overloadedCount} overloaded` : 'balanced'}
+          {isOverloaded ? `${overloadedCount} ${t('workload.overloaded')}` : t('workload.balanced')}
         </span>
         <div className="flex-1" />
         <button className="px-3 py-1.5 text-sm font-medium text-slate-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-          Rebalance
+          {t('workload.rebalance')}
         </button>
       </div>
 
@@ -184,7 +186,7 @@ export default function WorkloadPage() {
                       fontFamily: 'var(--font-geist-mono, monospace)',
                       fontSize: 12, color: '#64748b',
                     }}>
-                      {member.openTicketCount} open
+                      {member.openTicketCount} {t('workload.open')}
                     </div>
 
                     {/* Col 4: status + percentage */}
@@ -198,7 +200,7 @@ export default function WorkloadPage() {
                           fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
                           background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a',
                         }}>
-                          overloaded
+                          {t('workload.overloaded')}
                         </span>
                       ) : (
                         <span />

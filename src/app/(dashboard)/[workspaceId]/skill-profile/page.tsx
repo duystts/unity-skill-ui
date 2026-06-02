@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
+import { useLang } from '@/lib/i18n'
+import { avatarBg, getInitials } from '@/lib/avatarUtils'
 import type { Ticket, Project, UserAchievement, AchievementTier, AchievementSource } from '@/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -242,6 +244,7 @@ export default function SkillProfilePage() {
   const queryClient = useQueryClient()
   const user        = useAuthStore((s) => s.user)
   const userId      = user?.id
+  const { t }       = useLang()
 
   // ── Data fetching ──────────────────────────────────────────────────────────
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
@@ -319,10 +322,10 @@ export default function SkillProfilePage() {
   const displayName = user?.displayName || user?.email || 'You'
 
   const statCards = [
-    { value: String(totalDone), label: 'tickets closed' },
-    { value: avgCloseHours != null ? `${avgCloseHours}h` : '—', label: 'avg close time' },
-    { value: profile?.streak ? `${profile.streak.currentWeeks} wks` : '—', label: 'current streak' },
-    { value: `${earnedAchievements.length}/${ALL_DEFS.length}`, label: 'achievements' },
+    { value: String(totalDone), label: t('skillprofile.ticketsclosed') },
+    { value: avgCloseHours != null ? `${avgCloseHours}h` : '—', label: t('skillprofile.avgclosetime') },
+    { value: profile?.streak ? `${profile.streak.currentWeeks} wks` : '—', label: t('skillprofile.currentstreak') },
+    { value: `${earnedAchievements.length}/${ALL_DEFS.length}`, label: t('skillprofile.achievements') },
   ]
 
   return (
@@ -331,29 +334,27 @@ export default function SkillProfilePage() {
       {/* ── Breadcrumb bar ── */}
       <div style={{ borderBottom: '1px solid #30363d', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0d1117' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#8b949e', fontFamily: 'inherit', padding: 0 }}>← back</button>
+          <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#8b949e', fontFamily: 'inherit', padding: 0 }}>{t('skillprofile.back')}</button>
           <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#8b949e' }}>/ skill-profile</span>
         </div>
         <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#3fb950', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 6, height: 6, borderRadius: 9999, background: '#3fb950', boxShadow: '0 0 0 3px rgba(63,185,80,0.18)', flexShrink: 0 }} />
-          live · synced
+          {t('skillprofile.live')} · {t('skillprofile.synced')}
         </span>
       </div>
 
       {/* ── Profile header ── */}
       <div style={{ padding: '32px 28px 24px', maxWidth: 1024, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          {/* Avatar */}
-          {(() => {
-            const COLORS = ['#3574f0','#7c3aed','#10b981','#f59e0b','#ec4899','#ef4444']
-            const bg = COLORS[(displayName.charCodeAt(0) ?? 0) % COLORS.length]
-            const initials = displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
-            return (
-              <div style={{ width: 80, height: 80, borderRadius: 9999, background: bg, color: 'white', fontSize: 26, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 0 4px #30363d' }}>
-                {initials}
-              </div>
-            )
-          })()}
+          {/* Avatar — shows uploaded photo if available, else consistent initials */}
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={displayName}
+              style={{ width: 80, height: 80, borderRadius: 9999, objectFit: 'cover', flexShrink: 0, boxShadow: '0 0 0 4px #30363d' }} />
+          ) : (
+            <div style={{ width: 80, height: 80, borderRadius: 9999, background: avatarBg(displayName), color: 'white', fontSize: 26, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 0 4px #30363d' }}>
+              {getInitials(displayName)}
+            </div>
+          )}
 
           <div style={{ flex: 1, minWidth: 200 }}>
             <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.02em' }}>{displayName}</h1>
@@ -363,7 +364,7 @@ export default function SkillProfilePage() {
           <a href={`/portfolio/${userId}`} target="_blank" rel="noopener noreferrer"
             style={{ background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px 14px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, textDecoration: 'none', fontWeight: 500, flexShrink: 0 }}>
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-            Public portfolio
+            {t('skillprofile.publicportfolio')}
           </a>
         </div>
 
@@ -379,9 +380,9 @@ export default function SkillProfilePage() {
         {/* Pending review */}
         {pendingEvidence.length > 0 && (
           <section>
-            <SectionHead icon="bell" title="Pending Review" sub="AI-generated skill evidence — approve or reject" right={
+            <SectionHead icon="bell" title={t('skillprofile.pendingreview')} sub="AI-generated skill evidence — approve or reject" right={
               <span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#e3b341' }}>
-                <strong style={{ color: '#f0f6fc' }}>{pendingEvidence.length}</strong> waiting
+                <strong style={{ color: '#f0f6fc' }}>{pendingEvidence.length}</strong> {t('skillprofile.waiting')}
               </span>
             } />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -394,11 +395,11 @@ export default function SkillProfilePage() {
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                     <button onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'APPROVE' })} disabled={reviewMutation.isPending}
                       style={{ fontSize: 12, fontWeight: 600, background: '#238636', border: 'none', color: 'white', padding: '5px 10px', borderRadius: 6, cursor: 'pointer' }}>
-                      Approve
+                      {t('skillprofile.approve')}
                     </button>
                     <button onClick={() => reviewMutation.mutate({ evidenceId: item.id, action: 'REJECT' })} disabled={reviewMutation.isPending}
                       style={{ fontSize: 12, background: 'transparent', border: '1px solid #30363d', color: '#8b949e', padding: '5px 10px', borderRadius: 6, cursor: 'pointer' }}>
-                      Reject
+                      {t('skillprofile.reject')}
                     </button>
                   </div>
                 </div>
@@ -410,7 +411,7 @@ export default function SkillProfilePage() {
         {/* Pinned projects */}
         {projectStats.length > 0 && (
           <section>
-            <SectionHead icon="pin" title="Project Contributions"
+            <SectionHead icon="pin" title={t('skillprofile.pinnedprojects')}
               sub="Top projects by ticket count · cross-workspace"
               right={<span style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12, color: '#8b949e' }}><strong style={{ color: '#f0f6fc' }}>{projectStats.length}</strong> projects</span>} />
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(projectStats.length, 4)}, 1fr)`, gap: 12 }}>
@@ -431,9 +432,9 @@ export default function SkillProfilePage() {
         {/* Skill tags */}
         {(earnedSkillTags.length > 0 || lockedSkillTags.length > 0) && (
           <section>
-            <h2 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.01em' }}>Skill Tags</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#f0f6fc', letterSpacing: '-0.01em' }}>{t('skillprofile.skilltags')}</h2>
             <p style={{ margin: '0 0 14px', fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 11, color: '#6e7681' }}>
-              Unlocked by tag-based achievements · shown on your public portfolio
+              {t('skillprofile.unlockedbytags')}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {earnedSkillTags.map(name => {
@@ -498,8 +499,8 @@ export default function SkillProfilePage() {
             <div style={{ width: 56, height: 56, borderRadius: 9999, background: '#161b22', border: '1px solid #30363d', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <AchIcon name="circle" color="#8b949e" size={24} />
             </div>
-            <p style={{ margin: 0, color: '#8b949e', fontSize: 14 }}>No activity yet</p>
-            <p style={{ margin: '4px 0 0', color: '#6e7681', fontSize: 12 }}>Get assigned to tickets and connect GitHub to start building your profile</p>
+            <p style={{ margin: 0, color: '#8b949e', fontSize: 14 }}>{t('skillprofile.noactivity')}</p>
+            <p style={{ margin: '4px 0 0', color: '#6e7681', fontSize: 12 }}>{t('skillprofile.noactivity.sub')}</p>
           </div>
         )}
 
