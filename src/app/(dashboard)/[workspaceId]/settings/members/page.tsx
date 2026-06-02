@@ -8,6 +8,7 @@ import axios from 'axios'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
+import { useLang } from '@/lib/i18n'
 // Flat shape returned by GET /workspaces/{id}/members
 interface MemberItem {
   userId: string
@@ -87,6 +88,7 @@ export default function MembersSettingsPage() {
   const { workspaceId } = params
   const queryClient = useQueryClient()
   const currentUser = useAuthStore(s => s.user)
+  const { t } = useLang()
 
   // UI state
   const [inviteTab, setInviteTab] = useState<InviteTab>('email')
@@ -190,7 +192,7 @@ export default function MembersSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-1">Members</h1>
+      <h1 className="text-2xl font-bold mb-1">{t('members.title')}</h1>
       <p className="text-gray-500 text-sm mb-8">
         Manage who has access to this workspace.
       </p>
@@ -255,7 +257,7 @@ export default function MembersSettingsPage() {
                     disabled={!emailInput.trim() || inviteEmailMutation.isPending}
                     className="px-4 py-2 bg-cobalt-600 text-white text-sm rounded-lg font-medium hover:bg-cobalt-700 transition disabled:opacity-50"
                   >
-                    {inviteEmailMutation.isPending ? 'Generating…' : 'Invite'}
+                    {inviteEmailMutation.isPending ? 'Generating…' : t('members.invite')}
                   </button>
                 </form>
 
@@ -349,7 +351,7 @@ export default function MembersSettingsPage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <h2 className="font-semibold text-gray-800 text-sm">
-            {members.length} {members.length === 1 ? 'member' : 'members'}
+            {members.length} {t('common.members')}
           </h2>
         </div>
 

@@ -6,6 +6,7 @@ import { useQuery, useQueries } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
+import { useLang } from '@/lib/i18n'
 import type { Workspace, WorkspaceMember } from '@/types'
 
 // ── Accent palette cycling per workspace ─────────────────────────────────────
@@ -165,6 +166,7 @@ function WorkspaceRow({ ws, accent, selected, role, members, onSelect, onHover }
 export default function WorkspacesPage() {
   const router      = useRouter()
   const user        = useAuthStore((s) => s.user)
+  const { t }       = useLang()
   const [sel, setSel] = useState(0)
 
   const { data: workspaces = [], isLoading } = useQuery({
@@ -273,14 +275,14 @@ export default function WorkspacesPage() {
             fontSize: 12, fontWeight: 600, textTransform: 'uppercase',
             letterSpacing: '0.15em', color: '#2454d6', marginBottom: 10,
           }}>
-            Welcome back
+            {t('ws.welcome')}
           </div>
           <h1 style={{ margin: 0, fontSize: 34, fontWeight: 800, color: '#0f172a',
             letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Choose a workspace
+            {t('ws.choosetitle')}
           </h1>
           <p style={{ margin: '8px 0 0', fontSize: 15, color: '#64748b', lineHeight: 1.5 }}>
-            You belong to {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}. Pick one to jump back in.
+            {t('ws.belongs')} {workspaces.length} {t('ws.workspaces')}. {t('ws.pickone')}
           </p>
         </div>
 
@@ -337,9 +339,9 @@ export default function WorkspacesPage() {
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Create a new workspace</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>{t('ws.createnew')}</div>
             <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
-              Start fresh for a new team or project
+              {t('ws.createsub')}
             </div>
           </div>
         </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/apiClient';
+import { useLang } from '@/lib/i18n';
 
 type WorkloadStatus = 'AVAILABLE' | 'BALANCED' | 'OVERLOADED';
 
@@ -33,6 +34,7 @@ function weekBars(totalOpen: number, memberCount: number) {
 export default function TeamHealthPage() {
   const params = useParams();
   const workspaceId = params.workspaceId as string;
+  const { t } = useLang();
   const [health, setHealth] = useState<TeamHealthData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ export default function TeamHealthPage() {
     return (
       <div className="flex flex-col h-full overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
-          <h1 className="text-lg font-bold text-gray-900">Team health</h1>
+          <h1 className="text-lg font-bold text-gray-900">{t('health.title')}</h1>
         </div>
         <div className="flex-1 flex items-center justify-center bg-slate-50">
           <div className="w-5 h-5 border-2 border-cobalt-500 border-t-transparent rounded-full animate-spin" />
@@ -64,7 +66,7 @@ export default function TeamHealthPage() {
     return (
       <div className="flex flex-col h-full overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-white shrink-0">
-          <h1 className="text-lg font-bold text-gray-900">Team health</h1>
+          <h1 className="text-lg font-bold text-gray-900">{t('health.title')}</h1>
         </div>
         <div className="flex-1 flex items-center justify-center bg-slate-50">
           <p className="text-red-600 text-sm">Access denied. Only PM or Admin can view team health.</p>
@@ -77,7 +79,7 @@ export default function TeamHealthPage() {
     return (
       <div className="flex flex-col h-full overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-white shrink-0">
-          <h1 className="text-lg font-bold text-gray-900">Team health</h1>
+          <h1 className="text-lg font-bold text-gray-900">{t('health.title')}</h1>
         </div>
         <div className="flex-1 flex items-center justify-center bg-slate-50">
           <p className="text-red-600 text-sm">Failed to load team health data.</p>
@@ -102,28 +104,28 @@ export default function TeamHealthPage() {
 
   const kpis = [
     {
-      label: 'Velocity',
+      label: t('health.velocity'),
       value: velocityValue,
       unit: 'tickets',
       delta: overloadedCount === 0 ? '+12%' : '-5%',
       deltaGood: overloadedCount === 0,
     },
     {
-      label: 'Avg Cycle Time',
+      label: t('health.cycletime'),
       value: cycleTimeDays,
       unit: 'days',
       delta: cycleTimeDays <= 3 ? 'good' : 'slow',
       deltaGood: cycleTimeDays <= 3,
     },
     {
-      label: 'Review Latency',
+      label: t('health.reviewlatency'),
       value: reviewLatency,
       unit: 'hrs',
       delta: reviewLatency < 24 ? 'on track' : 'delayed',
       deltaGood: reviewLatency < 24,
     },
     {
-      label: 'Blocked',
+      label: t('health.blocked'),
       value: blockedCount,
       unit: 'tickets',
       delta: blockedCount === 0 ? 'clear' : 'needs attention',
@@ -192,7 +194,7 @@ export default function TeamHealthPage() {
           <div className="bg-white border border-gray-200 rounded-xl p-5"
             style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', marginBottom: 16 }}>
-              Throughput (8 weeks)
+              {t('health.throughput')} · {t('health.last8weeks')}
             </div>
             <div style={{ height: 120, display: 'flex', alignItems: 'flex-end', gap: 6 }}>
               {bars.map((val, i) => {
@@ -220,7 +222,7 @@ export default function TeamHealthPage() {
           <div className="bg-white border border-gray-200 rounded-xl p-5"
             style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', marginBottom: 14 }}>
-              Signals
+              {t('health.signals')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {signals.map((sig) => (
