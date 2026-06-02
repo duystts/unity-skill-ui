@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
+import { useLang } from '@/lib/i18n'
 import type { Ticket, Project } from '@/types'
 
 type FilterTab = 'All' | 'To Do' | 'In Progress' | 'Done'
@@ -92,6 +93,7 @@ function PriorityPill({ priority }: { priority?: string }) {
 export default function MyTicketsPage() {
   const params = useParams<{ workspaceId: string }>()
   const { workspaceId } = params
+  const { t } = useLang()
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
 
   const { data: tickets = [], isLoading } = useQuery({
@@ -127,7 +129,7 @@ export default function MyTicketsPage() {
     <div className="flex flex-col h-full overflow-hidden">
       {/* TopBar */}
       <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
-        <h1 className="text-lg font-bold text-gray-900">My Tickets</h1>
+        <h1 className="text-lg font-bold text-gray-900">{t('tickets.title')}</h1>
       </div>
 
       {/* Content */}
@@ -180,7 +182,7 @@ export default function MyTicketsPage() {
                       transition: 'all 0.15s',
                     }}
                   >
-                    {tab}
+                    {tab === 'All' ? t('tickets.all') : tab === 'To Do' ? t('tickets.todo') : tab === 'In Progress' ? t('tickets.inprogress') : t('tickets.done')}
                     <span style={{
                       fontSize: 11,
                       fontWeight: 600,

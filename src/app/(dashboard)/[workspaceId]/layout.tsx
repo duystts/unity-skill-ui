@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
 import { apiClient } from '@/lib/apiClient'
+import { useLang } from '@/lib/i18n'
+import { avatarBg, getInitials } from '@/lib/avatarUtils'
 import type { Workspace, WorkspaceMember } from '@/types'
 
 function IconifyIcon({ name, color, size = 16 }: { name: string; color: string; size?: number }) {
@@ -89,14 +91,14 @@ function IconChevronRight() {
 }
 
 const NAV_ITEMS = [
-  { label: 'Projects',          path: 'projects',          icon: <GlyphProjects />, pmOnly: false },
-  { label: 'My tickets',        path: 'my-tickets',        icon: <GlyphTickets />,  pmOnly: false },
-  { label: 'Workload',          path: 'workload',          icon: <GlyphWorkload />, pmOnly: true  },
-  { label: 'Team health',       path: 'team-health',       icon: <GlyphHealth />,   pmOnly: true  },
-  { label: 'Blocked decisions', path: 'blocked-decisions', icon: <GlyphBlocked />,  pmOnly: true  },
-  { label: 'Skill profile',     path: 'skill-profile',     icon: <GlyphSkill />,    pmOnly: false },
-  { label: 'Members',           path: 'settings/members',  icon: <GlyphMembers />,  pmOnly: false },
-]
+  { labelKey: 'nav.projects',   path: 'projects',          icon: <GlyphProjects />, pmOnly: false },
+  { labelKey: 'nav.mytickets',  path: 'my-tickets',        icon: <GlyphTickets />,  pmOnly: false },
+  { labelKey: 'nav.workload',   path: 'workload',          icon: <GlyphWorkload />, pmOnly: true  },
+  { labelKey: 'nav.teamhealth', path: 'team-health',       icon: <GlyphHealth />,   pmOnly: true  },
+  { labelKey: 'nav.blocked',    path: 'blocked-decisions', icon: <GlyphBlocked />,  pmOnly: true  },
+  { labelKey: 'nav.skillprofile', path: 'skill-profile',   icon: <GlyphSkill />,    pmOnly: false },
+  { labelKey: 'nav.members',    path: 'settings/members',  icon: <GlyphMembers />,  pmOnly: false },
+] as const
 
 // ── Keyboard key badge ────────────────────────────────────────────────────────
 function Key({ children }: { children: React.ReactNode }) {
@@ -216,6 +218,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
   const router    = useRouter()
   const user      = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const { t }     = useLang()
   const [wsOpen, setWsOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const wsRef = useRef<HTMLDivElement>(null)
@@ -284,7 +287,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
     <aside className="w-52 shrink-0 bg-slate-900 flex flex-col h-full">
       {/* Workspace switcher */}
       <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-        Workspace
+        {t('nav.workspace')}
       </div>
       <div className="relative mx-2 mb-2" ref={wsRef}>
         <button
@@ -307,7 +310,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
         {wsOpen && (
           <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
             <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-              Switch workspace
+              {t('ws.switchws')}
             </div>
             {allWorkspaces.map((ws) => {
               const initials = ws.name.slice(0, 2).toUpperCase()
@@ -347,7 +350,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
                 </div>
-                <span>New workspace</span>
+                <span>{t('ws.createnew')}</span>
               </button>
             </div>
           </div>
@@ -373,7 +376,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
               }`}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </Link>
           )
         })}
@@ -420,10 +423,10 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
 
             {/* Menu items */}
             {[
-              { icon: 'user', label: 'Skill profile', action: () => { setUserMenuOpen(false); router.push(`/${workspaceId}/skill-profile`) } },
-              { icon: 'data-transfer-both', label: 'Switch workspace', action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
-              { icon: 'settings', label: 'Account settings', action: () => { setUserMenuOpen(false); router.push(`/${workspaceId}/settings/account`) } },
-              { icon: 'keyframes', label: 'Keyboard shortcuts', hint: '⌘K', action: () => { setUserMenuOpen(false); onOpenKb() } },
+              { icon: 'user', label: t('topbar.skillprofile'), action: () => { setUserMenuOpen(false); router.push(`/${workspaceId}/skill-profile`) } },
+              { icon: 'data-transfer-both', label: t('topbar.switchworkspace'), action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
+              { icon: 'settings', label: t('topbar.accountsettings'), action: () => { setUserMenuOpen(false); router.push(`/${workspaceId}/settings/account`) } },
+              { icon: 'keyframes', label: t('topbar.keyboardshortcuts'), hint: '⌘K', action: () => { setUserMenuOpen(false); onOpenKb() } },
             ].map((item) => (
               <button
                 key={item.label}
@@ -459,7 +462,7 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               <IconifyIcon name="log-out" color="#f87171" size={15} />
-              <span>Log out</span>
+              <span>{t('topbar.logout')}</span>
             </button>
           </div>
         )}
@@ -469,9 +472,15 @@ function AppSidebar({ workspaceId, onOpenKb }: { workspaceId: string; onOpenKb: 
           onClick={() => setUserMenuOpen((v) => !v)}
           className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-800 transition"
         >
-          <div className="w-7 h-7 rounded-full bg-cobalt-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-            {userInitials}
-          </div>
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user?.displayName ?? ''}
+              className="w-7 h-7 rounded-full object-cover shrink-0" />
+          ) : (
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+              style={{ background: avatarBg(user?.displayName || user?.email || '?') }}>
+              {getInitials(user?.displayName || user?.email || '?')}
+            </div>
+          )}
           <span className="text-sm text-slate-300 truncate flex-1 text-left">
             {user?.displayName ?? 'User'}
           </span>

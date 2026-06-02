@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ── Design tokens — unity_skill ──────────────────────────────────── */
 :root {
   --background: #ffffff;
@@ -79,3 +82,34 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
 }
+
+/* ── Dark mode overrides ──────────────────────────────────────────────────── */
+/* Applied when <html class="dark"> is set (via theme picker in settings) */
+html.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+
+  color-scheme: dark;
+}
+
+/* Dark mode surface overrides */
+html.dark body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+/* Tailwind utility overrides for key surfaces in dark mode */
+html.dark .bg-white        { background-color: #1e293b !important; }
+html.dark .bg-gray-50      { background-color: #0f172a !important; }
+html.dark .bg-slate-50     { background-color: #0f172a !important; }
+html.dark .bg-gray-100     { background-color: #1e293b !important; }
+html.dark .border-gray-100 { border-color: #334155 !important; }
+html.dark .border-gray-200 { border-color: #334155 !important; }
+html.dark .text-gray-900   { color: #f1f5f9 !important; }
+html.dark .text-gray-800   { color: #e2e8f0 !important; }
+html.dark .text-gray-700   { color: #cbd5e1 !important; }
+html.dark .text-gray-600   { color: #94a3b8 !important; }
+html.dark .text-gray-500   { color: #64748b !important; }
+html.dark .text-gray-400   { color: #475569 !important; }
+html.dark .shadow-sm       { box-shadow: 0 1px 2px rgba(0,0,0,0.4) !important; }
+html.dark .shadow-xl       { box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important; }

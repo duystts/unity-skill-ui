@@ -6,6 +6,41 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/apiClient'
 import { useAuthStore } from '@/stores/authStore'
+import { useLang } from '@/lib/i18n'
+import { avatarBg, getInitials } from '@/lib/avatarUtils'
+
+// ── Language picker ───────────────────────────────────────────────────────────
+const LANGUAGES = [
+  { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'en', label: 'English',    flag: '🇺🇸' },
+] as const
+type LangCode = 'vi' | 'en'
+
+function LanguagePicker() {
+  const { lang, setLang } = useLang()
+
+  return (
+    <div className="flex gap-2 max-w-xs">
+      {LANGUAGES.map(l => (
+        <button
+          key={l.code}
+          onClick={() => setLang(l.code)}
+          className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition flex-1 ${
+            lang === l.code
+              ? 'border-cobalt-500 bg-cobalt-50 text-cobalt-700'
+              : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <span className="text-base leading-none">{l.flag}</span>
+          <span>{l.label}</span>
+          {lang === l.code && (
+            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-cobalt-500" />
+          )}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface AccountData {
@@ -67,14 +102,7 @@ const TZ_LABELS: Record<string, string> = {
   'UTC': 'UTC (GMT+0)',
 }
 
-// ── Avatar initials ───────────────────────────────────────────────────────────
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
-}
-const AVATAR_COLORS = ['#3574f0','#7c3aed','#10b981','#f59e0b','#ec4899','#ef4444','#06b6d4']
-function avatarBg(name: string) {
-  return AVATAR_COLORS[(name.charCodeAt(0) ?? 0) % AVATAR_COLORS.length]
-}
+// avatarBg and getInitials imported from @/lib/avatarUtils (shared across all pages)
 
 // ── Form input ────────────────────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -111,6 +139,7 @@ export default function AccountSettingsPage() {
   const queryClient = useQueryClient()
   const user = useAuthStore(s => s.user)
   const setUser = useAuthStore(s => s.setUser)
+  const { t } = useLang()
   const [tab, setTab] = useState<Tab>('profile')
 
   // ── Fetch account data ──────────────────────────────────────────────────────
@@ -154,11 +183,29 @@ export default function AccountSettingsPage() {
     onError: () => toast.error('Failed to save profile'),
   })
 
-  // ── Remove avatar mutation ──────────────────────────────────────────────────
+  // ── Avatar upload ───────────────────────────────────────────────────────────
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadAvatarMutation = useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData(); fd.append('file', file)
+      return apiClient.post<{ data: AccountData }>('/users/me/avatar/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then(r => r.data.data)
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['account', 'me'], updated)
+      // Sync authStore so skill profile + topbar avatar update immediately
+      if (user) setUser({ ...user, avatarUrl: updated.avatarUrl })
+      toast.success('Photo updated')
+    },
+    onError: () => toast.error('Failed to upload photo'),
+  })
+
   const removeAvatarMutation = useMutation({
     mutationFn: () => apiClient.patch('/users/me/avatar', { avatarUrl: null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['account', 'me'] })
+      if (user) setUser({ ...user, avatarUrl: null })
       toast.success('Photo removed')
     },
     onError: () => toast.error('Failed to remove photo'),
@@ -190,6 +237,37 @@ export default function AccountSettingsPage() {
     if (newPwd !== confirmPwd) { setPwdError('Passwords do not match'); return }
     changePwdMutation.mutate()
   }
+
+  // ── Change email ─────────────────────────────────────────────────────────────
+  const [newEmail, setNewEmail]         = useState('')
+  const [emailPwd, setEmailPwd]         = useState('')
+  const [emailError, setEmailError]     = useState('')
+  const changeEmailMutation = useMutation({
+    mutationFn: () => apiClient.patch('/users/me/email', {
+      newEmail: newEmail.trim(),
+      currentPassword: emailPwd || undefined,
+    }),
+    onSuccess: () => {
+      setNewEmail(''); setEmailPwd(''); setEmailError('')
+      queryClient.invalidateQueries({ queryKey: ['account', 'me'] })
+      toast.success('Email updated')
+    },
+    onError: (err: any) => setEmailError(err.response?.data?.error ?? 'Failed to update email'),
+  })
+
+  // ── Notification prefs ────────────────────────────────────────────────────────
+  const { data: notifPrefsData } = useQuery({
+    queryKey: ['notif-prefs'],
+    queryFn: () => apiClient.get<{ data: Record<string, boolean> }>('/users/me/notification-prefs')
+      .then(r => r.data.data),
+    enabled: tab === 'notifications',
+  })
+  const notifPrefs = notifPrefsData ?? { ticketAssigned: true, achievementEarned: true, skillEvidence: true, inviteAccepted: true }
+  const updateNotifPrefMutation = useMutation({
+    mutationFn: (patch: Record<string, boolean>) =>
+      apiClient.patch('/users/me/notification-prefs', patch),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notif-prefs'] }),
+  })
 
   // ── UI mode mutation ────────────────────────────────────────────────────────
   const uiModeMutation = useMutation({
@@ -242,13 +320,13 @@ export default function AccountSettingsPage() {
         {/* Left sidebar */}
         <aside className="w-52 shrink-0">
           <nav className="space-y-0.5">
-            <SidebarTab active={tab === 'profile'} onClick={() => setTab('profile')} label="Profile"
+            <SidebarTab active={tab === 'profile'} onClick={() => setTab('profile')} label={t('settings.profile')}
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} />
-            <SidebarTab active={tab === 'notifications'} onClick={() => setTab('notifications')} label="Notifications"
+            <SidebarTab active={tab === 'notifications'} onClick={() => setTab('notifications')} label={t('settings.notifications')}
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>} />
-            <SidebarTab active={tab === 'appearance'} onClick={() => setTab('appearance')} label="Appearance"
+            <SidebarTab active={tab === 'appearance'} onClick={() => setTab('appearance')} label={t('settings.appearance')}
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="3"/><path strokeLinecap="round" strokeLinejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>} />
-            <SidebarTab active={tab === 'security'} onClick={() => setTab('security')} label="Security"
+            <SidebarTab active={tab === 'security'} onClick={() => setTab('security')} label={t('settings.security')}
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} />
           </nav>
         </aside>
@@ -276,7 +354,14 @@ export default function AccountSettingsPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <button className="text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition">
+                    {/* Hidden file input */}
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadAvatarMutation.mutate(f) }} />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadAvatarMutation.isPending}
+                      className="text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition disabled:opacity-50 flex items-center gap-2">
+                      {uploadAvatarMutation.isPending && <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />}
                       Change photo
                     </button>
                     {account.avatarUrl && (
@@ -369,18 +454,20 @@ export default function AccountSettingsPage() {
               </div>
               <div className="px-6 py-6 space-y-4">
                 {[
-                  { label: 'Ticket assigned to me', sub: 'When someone assigns a ticket to you' },
-                  { label: 'Achievement earned', sub: 'When you unlock a new skill achievement' },
-                  { label: 'Skill evidence pending', sub: 'When AI generates new evidence to review' },
-                  { label: 'Workspace invite accepted', sub: 'When someone joins your workspace' },
+                  { key: 'ticketAssigned',    label: t('notif.ticketassigned'),    sub: t('notif.ticketassigned.sub') },
+                  { key: 'achievementEarned', label: t('notif.achievement'),       sub: t('notif.achievement.sub') },
+                  { key: 'skillEvidence',     label: t('notif.evidence'),          sub: t('notif.evidence.sub') },
+                  { key: 'inviteAccepted',    label: t('notif.inviteaccepted'),    sub: t('notif.inviteaccepted.sub') },
                 ].map(item => (
-                  <div key={item.label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  <div key={item.key} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{item.label}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <input type="checkbox" className="sr-only peer"
+                        checked={notifPrefs[item.key] ?? true}
+                        onChange={e => updateNotifPrefMutation.mutate({ [item.key]: e.target.checked })} />
                       <div className="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cobalt-600" />
                     </label>
                   </div>
@@ -391,28 +478,24 @@ export default function AccountSettingsPage() {
 
           {/* ── APPEARANCE TAB ── */}
           {tab === 'appearance' && (
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100">
-                <h2 className="text-base font-semibold text-gray-900">Appearance</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Customize how unity_skill looks for you.</p>
-              </div>
-              <div className="px-6 py-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">UI Mode</p>
-                <div className="grid grid-cols-2 gap-3 max-w-sm">
-                  {(['SERIOUS', 'CHARACTER'] as const).map(mode => (
-                    <button key={mode}
-                      onClick={() => uiModeMutation.mutate(mode)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition ${
-                        account.uiMode === mode
-                          ? 'border-cobalt-500 bg-cobalt-50 text-cobalt-700'
-                          : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                      }`}>
-                      <span className="text-xl">{mode === 'SERIOUS' ? '💼' : '🎭'}</span>
-                      <span className="text-sm font-semibold capitalize">{mode === 'SERIOUS' ? 'Serious' : 'Character'}</span>
-                    </button>
-                  ))}
+            <div className="space-y-4">
+
+              {/* UI Mode */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100">
+                  <h2 className="text-base font-semibold text-gray-900">Appearance</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Customize how unity_skill looks for you.</p>
                 </div>
-                <p className="text-xs text-gray-400 mt-3">Character mode adds a playful personality to notifications and UI chrome.</p>
+                <div className="px-6 py-6 space-y-6">
+
+                  {/* Language */}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800 mb-1">{t('lang.label')}</p>
+                    <p className="text-xs text-gray-400 mb-3">{t('lang.sub')}</p>
+                    <LanguagePicker />
+                  </div>
+
+                </div>
               </div>
             </div>
           )}
@@ -457,6 +540,36 @@ export default function AccountSettingsPage() {
                     className="bg-cobalt-600 hover:bg-cobalt-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition disabled:opacity-50"
                   >
                     {changePwdMutation.isPending ? 'Saving…' : account.hasPassword ? 'Update password' : 'Set password'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Change email */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100">
+                  <h2 className="text-base font-semibold text-gray-900">Change email</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Current: <span className="font-mono text-gray-700">{account.email}</span></p>
+                </div>
+                <div className="px-6 py-6 space-y-4">
+                  <Field label="New email address">
+                    <input type="email" className={inputCls} value={newEmail}
+                      onChange={e => setNewEmail(e.target.value)}
+                      placeholder="new@email.com" />
+                  </Field>
+                  {account.hasPassword && (
+                    <Field label="Current password (required)">
+                      <input type="password" className={inputCls} value={emailPwd}
+                        onChange={e => setEmailPwd(e.target.value)} placeholder="••••••••" />
+                    </Field>
+                  )}
+                  {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+                </div>
+                <div className="px-6 py-4 border-t border-gray-100 bg-slate-50 flex justify-end">
+                  <button
+                    onClick={() => { setEmailError(''); changeEmailMutation.mutate() }}
+                    disabled={!newEmail.includes('@') || changeEmailMutation.isPending}
+                    className="bg-cobalt-600 hover:bg-cobalt-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition disabled:opacity-50">
+                    {changeEmailMutation.isPending ? 'Saving…' : 'Update email'}
                   </button>
                 </div>
               </div>

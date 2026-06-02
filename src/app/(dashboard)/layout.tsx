@@ -9,6 +9,8 @@ import { useWebSocket } from '@/hooks/useWebSocket'
 import { apiClient } from '@/lib/apiClient'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
+import { useLang } from '@/lib/i18n'
+import { avatarBg, getInitials } from '@/lib/avatarUtils'
 
 function IconifyIcon({ name, color, size = 16 }: { name: string; color: string; size?: number }) {
   return (
@@ -89,6 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const accessToken = useAuthStore((s) => s.accessToken)
   const setAccessToken = useAuthStore((s) => s.setAccessToken)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const { t } = useLang()
   const [loggingOut, setLoggingOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
@@ -242,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor" className="shrink-0">
             <path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"/>
           </svg>
-          <span className="text-xs font-semibold">All workspaces</span>
+          <span className="text-xs font-semibold">{t('topbar.allworkspaces')}</span>
         </Link>
         <div className="flex items-center gap-1">
         {/* ── Notification bell ── */}
@@ -311,15 +314,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setUserMenuOpen((v) => !v)}
             className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition"
           >
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', background: '#3574f0',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0,
-            }}>
-              {user.displayName
-                ? user.displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
-                : '?'}
-            </div>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.displayName ?? ''}
+                style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            ) : (
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: avatarBg(user.displayName || user.email || '?'),
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0,
+              }}>
+                {getInitials(user.displayName || user.email || '?')}
+              </div>
+            )}
             <span className="text-sm font-medium text-slate-700">{user.displayName}</span>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="text-slate-400">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -343,15 +350,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }}>
               {/* Header */}
               <div style={{ padding: '10px 10px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: '50%',
-                  background: '#3574f0', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0,
-                }}>
-                  {user.displayName
-                    ? user.displayName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
-                    : '?'}
-                </div>
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.displayName ?? ''}
+                    style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{
+                    width: 34, height: 34, borderRadius: '50%',
+                    background: avatarBg(user.displayName || user.email || '?'),
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0,
+                  }}>
+                    {getInitials(user.displayName || user.email || '?')}
+                  </div>
+                )}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user.displayName}
@@ -367,10 +378,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Menu items */}
               {[
-                { icon: 'user', label: 'Skill profile', action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
-                { icon: 'data-transfer-both', label: 'Switch workspace', action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
-                { icon: 'settings', label: 'Account settings', action: () => setUserMenuOpen(false) },
-                { icon: 'keyframes', label: 'Keyboard shortcuts', hint: '⌘K', action: () => setUserMenuOpen(false) },
+                { icon: 'user', label: t('topbar.skillprofile'), action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
+                { icon: 'data-transfer-both', label: t('topbar.switchworkspace'), action: () => { setUserMenuOpen(false); router.push('/workspaces') } },
+                { icon: 'settings', label: t('topbar.accountsettings'), action: () => setUserMenuOpen(false) },
+                { icon: 'keyframes', label: t('topbar.keyboardshortcuts'), hint: '⌘K', action: () => setUserMenuOpen(false) },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -407,7 +418,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <IconifyIcon name="log-out" color="#ef4444" size={15} />
-                <span>{loggingOut ? 'Logging out…' : 'Log out'}</span>
+                <span>{loggingOut ? t('common.loading') : t('topbar.logout')}</span>
               </button>
             </div>
           )}

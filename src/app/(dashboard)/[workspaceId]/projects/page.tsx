@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { apiClient } from '@/lib/apiClient'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/stores/authStore'
+import { useLang } from '@/lib/i18n'
 import type { Project, Ticket, WorkspaceMember } from '@/types'
 
 type Tab = 'active' | 'archived'
@@ -32,6 +33,7 @@ export default function ProjectsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const currentUser = useAuthStore((s) => s.user)
+  const { t } = useLang()
 
   const [tab, setTab] = useState<Tab>('active')
 
@@ -110,14 +112,14 @@ export default function ProjectsPage() {
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── TopBar ── */}
       <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
-        <h1 className="text-lg font-bold text-gray-900">Projects</h1>
+        <h1 className="text-lg font-bold text-gray-900">{t('projects.title')}</h1>
         <div className="flex-1" />
         {isPmOrAdmin && (
           <button
             onClick={() => router.push(`/${workspaceId}/projects/new`)}
             className="px-3 py-1.5 text-sm bg-cobalt-600 text-white rounded-lg hover:bg-cobalt-700 transition font-medium"
           >
-            + New Project
+            {t('projects.new')}
           </button>
         )}
       </div>
@@ -132,7 +134,7 @@ export default function ProjectsPage() {
               : 'border-transparent text-gray-400 hover:text-gray-600'
           }`}
         >
-          Active
+          {t('projects.active')}
           {activeProjects.length > 0 && (
             <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-semibold ${tab === 'active' ? 'bg-cobalt-100 text-cobalt-700' : 'bg-gray-100 text-gray-500'}`}>
               {activeProjects.length}
@@ -150,7 +152,7 @@ export default function ProjectsPage() {
           <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
           </svg>
-          Archived
+          {t('projects.archived')}
           {archivedData && archivedData.length > 0 && (
             <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${tab === 'archived' ? 'bg-gray-100 text-gray-600' : 'bg-gray-100 text-gray-400'}`}>
               {archivedData.length}
@@ -171,18 +173,18 @@ export default function ProjectsPage() {
             <div className="bg-white border border-gray-200 rounded-xl p-10 max-w-sm">
               {tab === 'active' ? (
                 <>
-                  <p className="text-gray-500 mb-4">No active projects yet</p>
+                  <p className="text-gray-500 mb-4">{t('projects.empty')}</p>
                   {isPmOrAdmin && (
                     <button
                       onClick={() => router.push(`/${workspaceId}/projects/new`)}
                       className="text-cobalt-600 hover:text-cobalt-700 text-sm font-medium hover:underline"
                     >
-                      + New Project
+                      {t('projects.new')}
                     </button>
                   )}
                 </>
               ) : (
-                <p className="text-gray-400 text-sm">No archived projects</p>
+                <p className="text-gray-400 text-sm">{t('projects.noarchived')}</p>
               )}
             </div>
           </div>
@@ -302,7 +304,7 @@ export default function ProjectsPage() {
                           unarchiveMutation.mutate(project.id)
                         }}
                       >
-                        Restore
+                        {t('projects.restore')}
                       </button>
                     </div>
                   )}
